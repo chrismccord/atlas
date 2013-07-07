@@ -1,0 +1,2 @@
+defmodule Atlas do
+end
