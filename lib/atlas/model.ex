@@ -5,9 +5,10 @@ defmodule Atlas.Model do
       Module.register_attribute __MODULE__, :validations, accumulate: true, 
                                                           persist: false
       import unquote(__MODULE__)
+      import Atlas.Validator
       alias Atlas.Present
       alias Atlas.Count
-      alias Atlas.Record   
+      alias Atlas.Record
       @before_compile unquote(__MODULE__)
     end
   end
@@ -22,10 +23,54 @@ defmodule Atlas.Model do
         end
       end
 
+      @doc """
+      Returns a keyword list of attributes and error message pairs
+
+      ## Examples
+
+        iex> User.errors(UserRecord.new(name: "Chris"))
+        [name: "must be greater than 5 characters"]
+
+      """
       def errors(record) do
         @validations
         |> Enum.map(process_validation_form(record, &1))
         |> Enum.filter(fn error -> error end)
+      end
+
+      @doc """
+      Returns a list of expanded error messages including attribute names
+
+      ## Examples
+
+        iex> User.full_error_messages(UserRecord.new(name: "Chris"))
+        ["name must be greater than 5 characters"]
+
+      """
+      def full_error_messages(record) do
+        Enum.map errors(record), fn {attribute, error_message} ->
+          full_error_message(attribute, error_message)
+        end
+      end
+
+      @doc """
+      Returns an expanded error message for the record given the attribute
+
+      ## Examples
+
+        iex> User.errors_on(UserRecord.new(name: "Chris"), :name)
+        ["name must be greater than 5 characters"]
+
+        iex> User.errors_on(UserRecord.new(name: "Chris McCord"), :name)
+        nil
+
+      """
+      def errors_on(record, attribute) do
+        full_error_message(attribute, errors(record)[attribute])
+      end
+
+      defp full_error_message(attribute, error_body) do
+        "#{attribute} #{error_body}"
       end
 
       def valid?(record) do
@@ -36,7 +81,7 @@ defmodule Atlas.Model do
 
       defp process_validation_form(record, {:presence_of, attribute, options}) do
         unless Present.present?(Record.get(record, attribute)) do
-          "#{attribute} must not be blank"
+          {attribute, "must not be blank"}
         end
       end
 
@@ -45,7 +90,7 @@ defmodule Atlas.Model do
       end
 
       defp process_validation_form(record, {:length_of, attribute, options}) do
-        length  = Count.count(Record.get(record, attribute))
+        length = Count.count(Record.get(record, attribute))
         
         error = case options do
           [within: from..to] when not(length >= from and length <= to) ->
@@ -77,13 +122,12 @@ defmodule Atlas.Model do
           _ -> 
         end
         
-        if error, do: "#{attribute} must be #{error} characters"
+        if error, do: {attribute, "must be #{error} characters" }
       end
 
       defp process_validation_form(record, {:numericality_of, attribute, options}) do
-        value = to_binary(Record.get(record, attribute))
-        unless Regex.match?(%r/^(-)?[0-9]+(\.[0-9]+)?$/, value) do
-          "#{attribute} must be a valid number"
+        unless valid_number?(Record.get(record, attribute)) do
+          {attribute, "must be a valid number"}
         end
       end
 
@@ -137,10 +181,10 @@ end
 
 defrecord User, name: nil, city: nil
 
-defmodule UserModel do
+defmodule User do
   use Atlas.Model
 
   validates_presence_of :name
   validates_presence_of :city
-  validates_length_of :name, greater_than: 2, less_than: 6
+  validates_length_of :name, within: 2..255
 end

@@ -16,7 +16,7 @@ defmodule Atlas.ModelTest.Fixtures do
 end
 
 defmodule Atlas.ModelTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   import Atlas.ModelTest.Fixtures
   alias Atlas.ModelTest.TestModule
   alias Atlas.ModelTest.TestRecord
@@ -35,7 +35,7 @@ defmodule Atlas.ModelTest do
 
   test "#validate returns {:error, reasons} when validations return errors" do
     assert TestModule.validate(invalid_record) == { 
-      :error, ["name must be greater than 2 and less than 6 characters"] 
+      :error, [name: "must be greater than 2 and less than 6 characters"] 
     }
   end
 
@@ -52,7 +52,7 @@ defmodule Atlas.ModelTest do
       use Atlas.Model
       validates_length_of :name, greater_than: 2
     end
-    errors = LengthOf.errors(TestRecord.new name: "DJ")
+    errors = LengthOf.full_error_messages(TestRecord.new name: "DJ")
 
     assert Enum.member? errors, "name must be greater than 2 characters"
     assert LengthOf.valid?(TestRecord.new name: "DJ DUBS")
@@ -63,7 +63,7 @@ defmodule Atlas.ModelTest do
       use Atlas.Model
       validates_length_of :name, greater_than_or_equal: 3
     end
-    errors = LengthOf1.errors(TestRecord.new name: "DJ")
+    errors = LengthOf1.full_error_messages(TestRecord.new name: "DJ")
 
     assert Enum.member? errors, "name must be greater than or equal to 3 characters"
     assert LengthOf1.valid?(TestRecord.new name: "DJ DUBS")
@@ -74,7 +74,7 @@ defmodule Atlas.ModelTest do
       use Atlas.Model
       validates_length_of :name, greater_than: 2, less_than: 10
     end
-    errors = LengthOf2.errors(TestRecord.new name: "DJ")
+    errors = LengthOf2.full_error_messages(TestRecord.new name: "DJ")
 
     assert Enum.member? errors, "name must be greater than 2 and less than 10 characters"
     assert LengthOf2.valid?(TestRecord.new name: "DJ DUBS")
@@ -86,7 +86,7 @@ defmodule Atlas.ModelTest do
       use Atlas.Model
       validates_length_of :name, greater_than: 2, less_than_or_equal: 10
     end
-    errors = LengthOf3.errors(TestRecord.new name: "DJ")
+    errors = LengthOf3.full_error_messages(TestRecord.new name: "DJ")
 
     assert Enum.member? errors, "name must be greater than 2 and less than or equal to 10 characters"
     assert LengthOf3.valid?(TestRecord.new name: "DJ DUBS")
@@ -98,7 +98,7 @@ defmodule Atlas.ModelTest do
       use Atlas.Model
       validates_presence_of :name
     end
-    errors = PresenceOf.errors(TestRecord.new name: nil)
+    errors = PresenceOf.full_error_messages(TestRecord.new name: nil)
 
     assert Enum.first(errors) == "name must not be blank"
     assert PresenceOf.valid?(TestRecord.new name: "Chris")
@@ -110,7 +110,7 @@ defmodule Atlas.ModelTest do
       use Atlas.Model
       validates_numericality_of :total
     end
-    errors = NumericalityOf.errors(TestRecord.new total: "bogus")
+    errors = NumericalityOf.full_error_messages(TestRecord.new total: "bogus")
 
     assert Enum.first(errors) == "total must be a valid number"
     assert NumericalityOf.valid?(TestRecord.new total: "1234")

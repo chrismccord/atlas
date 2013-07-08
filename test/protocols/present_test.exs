@@ -1,7 +1,7 @@
 Code.require_file "../test_helper.exs", __DIR__
 
 defmodule Atlas.PresentTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   import Atlas.Present
 
   test "it implements present? for Number" do

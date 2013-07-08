@@ -1,7 +1,7 @@
 Code.require_file "../test_helper.exs", __DIR__
 
 defmodule Atlas.CountTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   import Atlas.Count
 
   test "it implements count for List" do
