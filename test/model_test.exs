@@ -35,7 +35,7 @@ defmodule Atlas.ModelTest do
 
   test "#validate returns {:error, reasons} when validations return errors" do
     assert TestModule.validate(invalid_record) == { 
-      :error, [name: "must be greater than 2 and less than 6 characters"] 
+      :error, [name: "_must be greater than 2 and less than 6 characters"] 
     }
   end
 
@@ -45,6 +45,40 @@ defmodule Atlas.ModelTest do
 
   test "#valid? returns false when validations return any errors" do
     refute TestModule.valid?(invalid_record)
+  end
+
+  test "#errors returns array of attribute, error message tuples" do
+    assert Enum.first(TestModule.errors(invalid_record)) == {
+      :name, "_must be greater than 2 and less than 6 characters"
+    }
+  end
+
+  test "#full_error_messages returns array of binaries containing expanded errors" do
+    assert Enum.first(TestModule.full_error_messages(invalid_record)) == 
+      "name must be greater than 2 and less than 6 characters"
+  end
+
+  test "#errors_on returns full error message for attribute" do
+    assert TestModule.errors_on(invalid_record, :name) ==
+      "name must be greater than 2 and less than 6 characters"
+  end
+
+  test "#errors_on returns full error without attribute prefix if message starts with '_'" do
+    defmodule ErrorsOnCustom do
+      use Atlas.Model
+      validates_length_of :name, within: 2..10, message: "Enter a reasonable name"
+    end
+    assert ErrorsOnCustom.errors_on(TestRecord.new(name: "A"), :name) ==
+      "Enter a reasonable name"
+  end
+
+  test "#errors_on returns full error with attribute prefix if message starts with '_'" do
+    defmodule ErrorsOnCustom2 do
+      use Atlas.Model
+      validates_length_of :name, within: 2..10, message: "_doesn't appear to be avalid"
+    end
+    assert ErrorsOnCustom2.errors_on(TestRecord.new(name: "A"), :name) ==
+      "name doesn't appear to be avalid"
   end
 
   test "#validates_length_of with greather_than" do
@@ -121,5 +155,27 @@ defmodule Atlas.ModelTest do
     refute NumericalityOf.valid?(TestRecord.new total: nil)
     refute NumericalityOf.valid?(TestRecord.new total: [])
     refute NumericalityOf.valid?(TestRecord.new total: true)
+  end
+
+  test "#validates_format_of" do
+    defmodule FormatOf do
+      use Atlas.Model
+      validates_format_of :name, with: %r/.*\s.*/
+    end
+
+    errors = FormatOf.full_error_messages(TestRecord.new name: "Chris")
+    assert Enum.first(errors) == "name is not valid"
+    assert FormatOf.valid?(TestRecord.new name: "Chris McCord")
+  end
+
+  test "#validates_format_of with custom error message" do
+    defmodule FormatOf2 do
+      use Atlas.Model
+      validates_format_of :name, with: %r/.*\s.*/, message: "Your name must include first and last"
+    end
+
+    errors = FormatOf2.full_error_messages(TestRecord.new name: "Chris")
+    assert Enum.first(errors) == "Your name must include first and last"
+    assert FormatOf2.valid?(TestRecord.new name: "Chris McCord")
   end
 end
