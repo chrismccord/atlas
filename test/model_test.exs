@@ -1,6 +1,6 @@
 Code.require_file "test_helper.exs", __DIR__
 
-defrecord Atlas.ModelTest.TestRecord, name: nil, total: nil
+defrecord Atlas.ModelTest.TestRecord, name: nil, total: nil, state: nil
 defmodule Atlas.ModelTest.TestModule do
   use Atlas.Model
 
@@ -35,7 +35,7 @@ defmodule Atlas.ModelTest do
 
   test "#validate returns {:error, reasons} when validations return errors" do
     assert TestModule.validate(invalid_record) == { 
-      :error, [name: "_must be greater than 2 and less than 6 characters"] 
+      :error, [name: "_ must be greater than 2 and less than 6 characters"] 
     }
   end
 
@@ -49,7 +49,7 @@ defmodule Atlas.ModelTest do
 
   test "#errors returns array of attribute, error message tuples" do
     assert Enum.first(TestModule.errors(invalid_record)) == {
-      :name, "_must be greater than 2 and less than 6 characters"
+      :name, "_ must be greater than 2 and less than 6 characters"
     }
   end
 
@@ -75,7 +75,7 @@ defmodule Atlas.ModelTest do
   test "#errors_on returns full error with attribute prefix if message starts with '_'" do
     defmodule ErrorsOnCustom2 do
       use Atlas.Model
-      validates_length_of :name, within: 2..10, message: "_doesn't appear to be avalid"
+      validates_length_of :name, within: 2..10, message: "_ doesn't appear to be avalid"
     end
     assert ErrorsOnCustom2.errors_on(TestRecord.new(name: "A"), :name) ==
       "name doesn't appear to be avalid"
@@ -177,5 +177,22 @@ defmodule Atlas.ModelTest do
     errors = FormatOf2.full_error_messages(TestRecord.new name: "Chris")
     assert Enum.first(errors) == "Your name must include first and last"
     assert FormatOf2.valid?(TestRecord.new name: "Chris McCord")
+  end
+
+  test "#validates allows adding custom validations" do
+    defmodule CustomValidation do
+      use Atlas.Model
+      validates :lives_in_ohio
+      def lives_in_ohio(record) do
+        unless record.state == "OH" do
+          {:state, "You must live in Ohio"}
+        end
+      end
+    end
+    errors = CustomValidation.full_error_messages(TestRecord.new state: "CA")
+
+    assert Enum.first(errors) == "You must live in Ohio"
+    refute CustomValidation.valid? TestRecord.new state: "CA"
+    assert CustomValidation.valid? TestRecord.new state: "OH"
   end
 end

@@ -75,7 +75,7 @@ defmodule Atlas.Model do
       defp full_error_message(attribute, nil), do: nil
       defp full_error_message(attribute, error_body) do
         if include_attribute_prefix_in_error?(error_body) do
-          "#{attribute} #{exclude_attribute_prefix(error_body)}"
+          "#{attribute}#{exclude_attribute_prefix(error_body)}"
         else
           error_body
         end
@@ -95,7 +95,7 @@ defmodule Atlas.Model do
 
       defp process_validation_form(record, {:presence_of, attribute, options}) do
         value   = Record.get(record, attribute)
-        message = Keyword.get options, :message, "_must not be blank"
+        message = Keyword.get options, :message, "_ must not be blank"
 
         unless Present.present?(value), do: {attribute, message}
       end
@@ -103,7 +103,7 @@ defmodule Atlas.Model do
       defp process_validation_form(record, {:format_of, attribute, options}) do
         value   = to_binary(Record.get(record, attribute))
         regexp  = Keyword.get options, :with
-        message = Keyword.get options, :message, "_is not valid"
+        message = Keyword.get options, :message, "_ is not valid"
 
         unless Regex.match?(regexp, value), do: {attribute, message}
       end
@@ -116,31 +116,31 @@ defmodule Atlas.Model do
 
         default_error = case options do
           [within: from..to] when not(length >= from and length <= to) ->
-            "_must be between #{from} and #{to} characters"
+            "_ must be between #{from} and #{to} characters"
           
           [greater_than: gt, less_than: lt] when not(length > gt and length < lt) ->
-            "_must be greater than #{gt} and less than #{lt} characters"
+            "_ must be greater than #{gt} and less than #{lt} characters"
           
           [greater_than_or_equal: gte, less_than: lt] when not(length >= gte and length < lt) ->
-            "_must be greater than or equal to #{gte} and less than #{lt} characters"
+            "_ must be greater than or equal to #{gte} and less than #{lt} characters"
           
           [greater_than: gt, less_than_or_equal: lte] when not(length > gt and length <= lte) ->
-            "_must be greater than #{gt} and less than or equal to #{lte} characters"
+            "_ must be greater than #{gt} and less than or equal to #{lte} characters"
           
           [greater_than_or_equal: gte, less_than_or_equal: lte] when not(length >= gte and length <= lte) ->
-            "_must be greater than or equal to #{gte} and less than or equal to #{lte} characters"
+            "_ must be greater than or equal to #{gte} and less than or equal to #{lte} characters"
           
           [greater_than: gt] when not(length > gt) ->
-            "_must be greater than #{gt} characters"
+            "_ must be greater than #{gt} characters"
           
           [less_than: lt] when not(length < lt) ->
-            "_must be less than #{lt} characters"
+            "_ must be less than #{lt} characters"
           
           [less_than_or_equal: lte] when not(length <= lte) ->
-            "_must be less than or equal to #{lte} characters"
+            "_ must be less than or equal to #{lte} characters"
           
           [greater_than_or_equal: gte] when not(length >= gte) ->
-            "_must be greater than or equal to #{gte} characters"
+            "_ must be greater than or equal to #{gte} characters"
           _-> 
         end
         
@@ -149,7 +149,7 @@ defmodule Atlas.Model do
 
       defp process_validation_form(record, {:numericality_of, attribute, options}) do
         value   = Record.get(record, attribute)
-        message = Keyword.get options, :message, "_must be a valid number" 
+        message = Keyword.get options, :message, "_ must be a valid number" 
         
         unless valid_number?(value), do: {attribute, message}
       end
