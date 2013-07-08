@@ -108,6 +108,14 @@ defmodule Atlas.Model do
         unless Regex.match?(regexp, value), do: {attribute, message}
       end
 
+      defp process_validation_form(record, {:inclusion_of, attribute, options}) do
+        value   = to_binary(Record.get(record, attribute))
+        in_list = Keyword.get(options, :in, []) |> Enum.map to_binary(&1)
+        message = Keyword.get options, :message, "_ must be one of #{Enum.join in_list, ", "}"
+
+        unless Enum.member?(in_list, value), do: {attribute, message}
+      end
+
       defp process_validation_form(record, {:length_of, attribute, options}) do
         length  = Count.count(Record.get(record, attribute))
         message = Keyword.get options, :message
@@ -188,6 +196,13 @@ defmodule Atlas.Model do
     end
   end
 
+  defmacro validates_inclusion_of(attribute, options // []) do
+    options = normalize_validation_options(options)
+    quote do
+      @validations {:inclusion_of, unquote(attribute), unquote(options)}
+    end
+  end
+
   defmacro validates(method_name, options // []) do
     options = normalize_validation_options(options)
     quote do
@@ -212,8 +227,10 @@ defmodule UserModel do
   validates_presence_of :city
   validates_length_of :name, within: 2..255 #, message: "Your name must be a reasonable length"
   validates_format_of :name, with: %r/.*\s.*/, message: "Name must include first and last"
+  validates_inclusion_of :age, in: [1, 2, 3]
 
   validates :lives_in_ohio
+
 
   def lives_in_ohio(record) do
     unless record.city == "Fairborn", do: {:city, "must be in Ohio"} 

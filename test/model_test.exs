@@ -179,6 +179,28 @@ defmodule Atlas.ModelTest do
     assert FormatOf2.valid?(TestRecord.new name: "Chris McCord")
   end
 
+  test "#validates_inclusion_of" do
+    defmodule InclusionOf do
+      use Atlas.Model
+      validates_inclusion_of :name, in: ["jane", "bob"]
+    end
+
+    errors = InclusionOf.full_error_messages(TestRecord.new name: "Chris")
+    assert Enum.first(errors) == "name must be one of jane, bob"
+    assert InclusionOf.valid?(TestRecord.new name: "jane")
+  end
+
+  test "#validates_inclusion_of with custom error message" do
+    defmodule InclusionOf2 do
+      use Atlas.Model
+      validates_inclusion_of :name, in: ["jane", "bob"], message: "Select jane or bob"
+    end
+
+    errors = InclusionOf2.full_error_messages(TestRecord.new name: "Chris")
+    assert Enum.first(errors) == "Select jane or bob"
+    assert InclusionOf2.valid?(TestRecord.new name: "jane")
+  end
+
   test "#validates allows adding custom validations" do
     defmodule CustomValidation do
       use Atlas.Model
