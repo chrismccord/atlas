@@ -3,7 +3,7 @@ defmodule Atlas.Model do
   defmacro __using__(_options) do
     quote do
       @message_prefix_delimiter "_"
-      Module.register_attribute __MODULE__, :validations, accumulate: true, 
+      Module.register_attribute __MODULE__, :validations, accumulate: true,
                                                           persist: false
       import unquote(__MODULE__)
       import Atlas.Validator
@@ -125,40 +125,40 @@ defmodule Atlas.Model do
         default_error = case options do
           [within: from..to] when not(length >= from and length <= to) ->
             "_ must be between #{from} and #{to} characters"
-          
+
           [greater_than: gt, less_than: lt] when not(length > gt and length < lt) ->
             "_ must be greater than #{gt} and less than #{lt} characters"
-          
+
           [greater_than_or_equal: gte, less_than: lt] when not(length >= gte and length < lt) ->
             "_ must be greater than or equal to #{gte} and less than #{lt} characters"
-          
+
           [greater_than: gt, less_than_or_equal: lte] when not(length > gt and length <= lte) ->
             "_ must be greater than #{gt} and less than or equal to #{lte} characters"
-          
+
           [greater_than_or_equal: gte, less_than_or_equal: lte] when not(length >= gte and length <= lte) ->
             "_ must be greater than or equal to #{gte} and less than or equal to #{lte} characters"
-          
+
           [greater_than: gt] when not(length > gt) ->
             "_ must be greater than #{gt} characters"
-          
+
           [less_than: lt] when not(length < lt) ->
             "_ must be less than #{lt} characters"
-          
+
           [less_than_or_equal: lte] when not(length <= lte) ->
             "_ must be less than or equal to #{lte} characters"
-          
+
           [greater_than_or_equal: gte] when not(length >= gte) ->
             "_ must be greater than or equal to #{gte} characters"
-          _-> 
+          _->
         end
-        
+
         if default_error, do: {attribute, message || default_error}
       end
 
       defp process_validation_form(record, {:numericality_of, attribute, options}) do
         value   = Record.get(record, attribute)
-        message = Keyword.get options, :message, "_ must be a valid number" 
-        
+        message = Keyword.get options, :message, "_ must be a valid number"
+
         unless valid_number?(value), do: {attribute, message}
       end
 
@@ -225,7 +225,7 @@ defmodule UserModel do
   validates_numericality_of :age
   validates_presence_of :name
   validates_presence_of :city
-  validates_length_of :name, within: 2..255 #, message: "Your name must be a reasonable length"
+  validates_length_of :name, within: 2..255
   validates_format_of :name, with: %r/.*\s.*/, message: "Name must include first and last"
   validates_inclusion_of :age, in: [1, 2, 3]
 
@@ -233,6 +233,6 @@ defmodule UserModel do
 
 
   def lives_in_ohio(record) do
-    unless record.city == "Fairborn", do: {:city, "must be in Ohio"} 
+    unless record.city == "Fairborn", do: {:city, "must be in Ohio"}
   end
 end
