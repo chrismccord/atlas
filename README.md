@@ -57,31 +57,33 @@ Create a `database_config.ex` file in your project with an `Atlas.DatabaseConfig
 
 ```elixir
 defmodule Atlas.DatabaseConfig do
+  alias Atlas.Database.PostgresAdapter
+
   def config(:dev) do
     [
-      adapter: "",
+      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
-      host: "",
+      host: "localhost",
       pool: 5
     ]
   end
 
   def config(:test) do
     [
-      adapter: "",
+      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
-      host: "",
+      host: "localhost",
       pool: 5
     ]
   end
 
   def config(:prod) do
     [
-      adapter: "",
+      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
