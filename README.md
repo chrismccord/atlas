@@ -50,3 +50,44 @@ iex> User.full_error_messages user
 ["Email must be valid","email must be between 5 and 255 characters","email must not be blank","id must be a valid number"]
 
 ```
+
+
+## Database Configuration
+Create a `database_config.ex` file in your project with an `Atlas.DatabaseConfig` module containing config methods for `:dev`, `:test`, and `:prod` environments:
+
+```elixir
+defmodule Atlas.DatabaseConfig do
+  def config(:dev) do
+    [
+      adapter: "",
+      database: "",
+      username: "",
+      password: "",
+      host: "",
+      pool: 5
+    ]
+  end
+
+  def config(:test) do
+    [
+      adapter: "",
+      database: "",
+      username: "",
+      password: "",
+      host: "",
+      pool: 5
+    ]
+  end
+
+  def config(:prod) do
+    [
+      adapter: "",
+      database: "",
+      username: "",
+      password: "",
+      host: "",
+      pool: 5
+    ]
+  end
+end
+```
