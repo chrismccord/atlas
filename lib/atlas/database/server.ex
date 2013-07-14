@@ -57,12 +57,24 @@ defmodule Atlas.Database.Server do
     end
   end
 
-  # Ex: {:column,"id",:int4,4,-1,0}
+  # Ex: [{:column,"id",:int4,4,-1,0}, {:column,"age",:int4,4,-1,0}]
+  # => [:id, :age]
   defp normalize_cols(columns) do
     Enum.map columns, fn col -> binary_to_atom(elem(col, 1)) end
   end
 
-  defp normalize_rows(rows) do
-    Enum.map(rows, tuple_to_list(&1))
+  defp normalize_rows(rows_of_tuples) do
+    rows_of_tuples
+    |> Enum.map(tuple_to_list(&1))
+    |> Enum.map(normalize_values(&1))
   end
+
+  defp normalize_values(row) do
+    Enum.map row, normalize_value(&1)
+  end
+
+  defp normalize_value(:null), do: nil
+  defp normalize_value("t"), do: true
+  defp normalize_value("f"), do: false
+  defp normalize_value(value), do: to_binary(value)
 end

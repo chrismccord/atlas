@@ -4,11 +4,10 @@ defmodule Atlas.Database.Client do
     :gen_server.call :db_server, {:query, string}
   end
 
-  def map_query_to_records(query_string, record) do
+  def query_to_kwlist(query_string) do
     {:ok, count, columns, rows} = query(query_string)
 
     keyword_lists_from_query(columns, rows)
-    |> keyword_lists_to_records(record)
   end
 
   def keyword_lists_from_query(columns, rows) do
