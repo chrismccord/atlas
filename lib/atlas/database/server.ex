@@ -9,6 +9,8 @@ defmodule Atlas.Database.Server do
                         host: nil,
                         pool: 1
 
+  defrecord Connection, pid: nil, adapter: nil
+
   def start_link(config_options) do
     :gen_server.start_link({:local, :db_server}, __MODULE__, [config_options], [])
   end
@@ -25,8 +27,8 @@ defmodule Atlas.Database.Server do
 
   defp connect_all(config) do
     Enum.map 1..(config.pool), fn pool ->
-      {:ok, conn} = connnect(config)
-      conn
+      {:ok, pid} = connect(config)
+      Connection.new(pid: pid, adapter: config.adapter)
     end
   end
 
@@ -39,42 +41,11 @@ defmodule Atlas.Database.Server do
     end
   end
 
-  defp connnect(config) do
-    PG.connect(
-      binary_to_list(config.host),
-      binary_to_list(config.username),
-      binary_to_list(config.password),
-      database: binary_to_list(config.database)
-    )
+  defp connect(config) do
+    config.adapter.connect(config)
   end
 
   defp query(conn, string) do
-    case PG.squery(conn, string) do
-      {:ok, cols, rows} -> {:ok, nil, normalize_cols(cols), normalize_rows(rows)}
-      {:ok, count}      -> {:ok, count, [], []}
-      {:ok, count, cols, rows} -> {:ok, count, normalize_cols(cols), normalize_rows(rows)}
-      {:error, error }  -> {:error, error }
-    end
+    conn.adapter.query(conn.pid, string)
   end
-
-  # Ex: [{:column,"id",:int4,4,-1,0}, {:column,"age",:int4,4,-1,0}]
-  # => [:id, :age]
-  defp normalize_cols(columns) do
-    Enum.map columns, fn col -> binary_to_atom(elem(col, 1)) end
-  end
-
-  defp normalize_rows(rows_of_tuples) do
-    rows_of_tuples
-    |> Enum.map(tuple_to_list(&1))
-    |> Enum.map(normalize_values(&1))
-  end
-
-  defp normalize_values(row) do
-    Enum.map row, normalize_value(&1)
-  end
-
-  defp normalize_value(:null), do: nil
-  defp normalize_value("t"), do: true
-  defp normalize_value("f"), do: false
-  defp normalize_value(value), do: to_binary(value)
 end
