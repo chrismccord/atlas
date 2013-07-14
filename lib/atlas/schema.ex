@@ -16,6 +16,8 @@ defmodule Atlas.Schema do
     quote do
       defrecord Record, fields_to_kwlist(@fields)
 
+      def __atlas__(:fields), do: @fields
+
       def where(query) do
         Client.query_to_kwlist(query)
         |> Enum.map(fn row -> raw_kwlist_to_field_types(row) end)
@@ -42,6 +44,11 @@ defmodule Atlas.Schema do
     end
   end
 
+  @doc """
+  Converts @fields attribute to keyword list to be used for Record definition
+  iex> Schema.fields_to_kwlist([{:active, :boolean, [default: true]}, {:id, :integer, []}])
+  [id: nil, active: true]
+  """
   def fields_to_kwlist(fields) do
     Enum.map fields, fn field -> {elem(field, 0), default_for_field(field)} end
   end
@@ -54,25 +61,5 @@ defmodule Atlas.Schema do
     quote do
       @fields {unquote(field_name), unquote(field_type), unquote(options), unquote(func)}
     end
-  end
-
-  def create_field_functions({field_name, :string, options}) do
-
-  end
-
-  def create_field_functions({field_name, :integer, options}) do
-
-  end
-
-  def create_field_functions({field_name, :float, options}) do
-
-  end
-
-  def create_field_functions({field_name, :datetme, options}) do
-
-  end
-
-  def create_field_functions({field_name, :boolean, options}) do
-
   end
 end

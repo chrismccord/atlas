@@ -23,7 +23,7 @@ defmodule Atlas.ModelTest do
 
 
   test "it adds validations to the module" do
-    assert TestModule.validations == [
+    assert TestModule.__atlas__(:validations) == [
       {:length_of,:name,[greater_than: 2, less_than: 6]},
       {:presence_of,:name,[]}
     ]
@@ -34,8 +34,8 @@ defmodule Atlas.ModelTest do
   end
 
   test "#validate returns {:error, reasons} when validations return errors" do
-    assert TestModule.validate(invalid_record) == { 
-      :error, [name: "_ must be greater than 2 and less than 6 characters"] 
+    assert TestModule.validate(invalid_record) == {
+      :error, [name: "_ must be greater than 2 and less than 6 characters"]
     }
   end
 
@@ -54,7 +54,7 @@ defmodule Atlas.ModelTest do
   end
 
   test "#full_error_messages returns array of binaries containing expanded errors" do
-    assert Enum.first(TestModule.full_error_messages(invalid_record)) == 
+    assert Enum.first(TestModule.full_error_messages(invalid_record)) ==
       "name must be greater than 2 and less than 6 characters"
   end
 

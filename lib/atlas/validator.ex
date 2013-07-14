@@ -69,7 +69,7 @@ defmodule Atlas.Validator do
   defmacro __before_compile__(_env) do
     quote do
 
-      def validations, do: @validations
+      def __atlas__(:validations), do: @validations
 
       def validate(record) do
         case errors(record) do
