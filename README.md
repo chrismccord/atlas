@@ -23,7 +23,7 @@ defmodule User do
   field :email, :string
   field :is_site_admin, :boolean
   field :archived, :boolean
-  field :city, :string
+  field :state, :string
 
   validates_numericality_of :id
   validates_presence_of :email
@@ -33,7 +33,7 @@ defmodule User do
 
 
   def lives_in_ohio(record) do
-    unless record.city == "Fairborn", do: {:city, "must be in Ohio"}
+    unless record.state == "OH", do: {:state, "You must live in Ohio"}
   end
 ```
 
@@ -57,31 +57,33 @@ Create a `database_config.ex` file in your project with an `Atlas.DatabaseConfig
 
 ```elixir
 defmodule Atlas.DatabaseConfig do
+  alias Atlas.Database.PostgresAdapter
+
   def config(:dev) do
     [
-      adapter: "",
+      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
-      host: "",
+      host: "localhost",
       pool: 5
     ]
   end
 
   def config(:test) do
     [
-      adapter: "",
+      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
-      host: "",
+      host: "localhost",
       pool: 5
     ]
   end
 
   def config(:prod) do
     [
-      adapter: "",
+      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
