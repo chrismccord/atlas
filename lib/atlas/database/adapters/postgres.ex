@@ -1,4 +1,6 @@
 defmodule Atlas.Database.PostgresAdapter do
+  @behaviour Atlas.Database.Adapter
+
   import Atlas.Database.FieldNormalizer
   alias :pgsql, as: PG
 
@@ -22,6 +24,14 @@ defmodule Atlas.Database.PostgresAdapter do
       {:error, error }         -> {:error, error }
     end
   end
+
+  def quote_column(column), do: "\"#{column}\""
+
+  def quote_tablename(tablename), do: "\"#{tablename}\""
+
+  def quote_value(value), do: "'#{escape value}'"
+
+  def escape(value), do: value
 
   # Ex: [{:column,"id",:int4,4,-1,0}, {:column,"age",:int4,4,-1,0}]
   # => [:id, :age]
