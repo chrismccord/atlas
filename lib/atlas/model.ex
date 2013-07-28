@@ -3,7 +3,9 @@ defmodule Atlas.Model do
   defmacro __using__(_options) do
     quote do
       use Atlas.Schema
+      use Atlas.QueryBuilder
       use Atlas.Validator
+      use Atlas.Finders
 
       @before_compile unquote(__MODULE__)
     end
@@ -11,13 +13,14 @@ defmodule Atlas.Model do
 
   defmacro __before_compile__(_env) do
   end
-
-
 end
 
 
 defmodule User do
   use Atlas.Model
+
+  @table :users
+  @primary_key :id
 
   field :id, :integer
   field :login, :string

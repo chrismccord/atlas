@@ -1,5 +1,94 @@
 defmodule Atlas.Validator do
 
+  @moduledoc """
+  Provides Model validations including validation rule definitions and error messages.
+
+  # Validation types
+
+    ## validates_presence_of
+      Uses Atlas.Present protocol to ensure field is non-blank value
+
+    ## validates_format_of
+      Validates if field matches format given by regular expression
+
+      options
+        `with: [regex]`
+
+    ## validates_inclusion_of
+      Validates if field is included in list of values
+
+      options
+        `in: [list]`
+
+    ## validates_length_of
+      Validates if length of string is within min and maxima
+
+      options
+        `within: [number]`
+        `greater_than: [number]`
+        `greater_than_or_equal: [number]`
+        `less_than: [number]`
+        `less_than_or_equal: [number]`
+
+
+    ## validates_numericality_of
+      Validates that given string value is a valid number
+
+    ## validates
+      Provides custom validation functions. First argument is atom of function name to be
+      called.
+
+
+  # Custom validations
+    Custom validations can be used to define arbitrary functions to call when validating
+    a model. The functions return a tuple containing the field name and error message if
+    an object is found to be invalid, nil otherwise.
+
+
+  # Error message formatting
+    When providing custom error messages to valdations, with `message:`, an underscore
+    can be used to substitute the field name within the error message.
+
+
+  Examples
+
+    defmodule User do
+      use Atlas.Model
+
+      field :id,    :integer
+      field :email, :string
+      field :age,   :integer
+      field :state, :string
+
+      validates_numericality_of :id
+      validates_presence_of :email
+      validates_length_of :email, within: 5..255
+      validates_length_of :state, greater_than_or_equal: 2, less_than_or_equal: 255
+      validates_format_of :email, with: %r/.*@.*/, message: "Email must be valid"
+      validates_inclusion_of :age, in: [10, 11, 12]
+
+      validates :lives_in_ohio
+
+      def lives_in_ohio(record) do
+        unless record.state == "OH", do: {:state, "_ must be in Ohio"}
+      end
+    end
+
+    ```
+    iex> user = User.Record.new(email: "invalid")
+    User.Record[id: nil, email: "invalid"...
+
+    iex> User.valid? user
+    false
+
+    iex> User.full_error_messages user
+    ["email must be between 5 and 255 characters","email must not be blank","id must be a valid number"]
+
+    iex> User.errors_on(user, :id)
+    ["id must be a valid number"]
+    ```
+  """
+
   defmacro __using__(_options) do
     quote do
       @message_prefix_delimiter "_"

@@ -26,7 +26,7 @@ defmodule Atlas.Database.Server do
   end
 
   defp connect_all(config) do
-    Enum.map 1..(config.pool), fn pool ->
+    Enum.map 1..(config.pool), fn _pool ->
       {:ok, pid} = connect(config)
       Connection.new(pid: pid, adapter: config.adapter)
     end

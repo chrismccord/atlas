@@ -2,3 +2,4 @@
 /deps
 erl_crash.dump
 *.ez
+lib/atlas/config/database_config.ex

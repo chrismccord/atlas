@@ -13,8 +13,8 @@ defmodule Atlas.Database.Adapter do
   defcallback query(pid, query :: binary) :: { :ok, count :: integer, cols :: list, rows :: list } |
                                              { :error, term }
 
-  defcallback prepare_query(query :: binary , args :: list) :: { :ok, prepared_query :: binary } |
-                                                               { :error, term }
+  # defcallback prepare_query(query :: binary , args :: list) :: { :ok, prepared_query :: binary } |
+  #                                                              { :error, term }
 
   defcallback quote_column(column :: binary) :: column :: binary
 

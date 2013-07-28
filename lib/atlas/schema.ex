@@ -1,5 +1,34 @@
 defmodule Atlas.Schema do
   alias Atlas.Database.Client
+
+  @moduledoc """
+  Provides schema definitions and Record generation through a `field` macro and
+  `__MODULE__.Record` record to hold model state.
+  `field` definitions provide handling conversion of binary database results
+  into schema defined types.
+
+  Field Types
+    :string
+    :integer
+    :float
+    :boolean
+
+  `field` accepts the column name as its first argument, followed by a field type, and
+  finally an optional default value as the last argument
+
+  Examples
+
+    defmodule User do
+      use Atlas.Model
+
+      field :email, :string
+      field :active, :boolean, default: true
+    end
+
+    iex> User.Record.new
+    User.Record[active: true, email: nil]
+  """
+
   defmacro __using__(_options) do
     quote do
       Module.register_attribute __MODULE__, :fields, accumulate: true,
@@ -18,8 +47,8 @@ defmodule Atlas.Schema do
 
       def __atlas__(:fields), do: @fields
 
-      def where(query) do
-        Client.query_to_kwlist(query)
+      def raw_query_results_to_records(results) do
+        results
         |> Enum.map(fn row -> raw_kwlist_to_field_types(row) end)
         |> Enum.map(fn row -> Record.new(row) end)
       end
@@ -31,14 +60,20 @@ defmodule Atlas.Schema do
       end
 
       def field_type_for_name(field_name) do
-        @fields
-        |> Enum.find(fn field -> elem(field, 0) == field_name end)
-        |> elem(1)
+        field = @fields |> Enum.find(fn field -> elem(field, 0) == field_name end)
+        if field, do: elem(field, 1)
       end
 
+      def value_to_field_type(value, :string) when is_binary(value), do: value
       def value_to_field_type(value, :string), do: to_binary(value)
+
+      def value_to_field_type(value, :integer) when is_integer(value), do: value
       def value_to_field_type(value, :integer), do: elem(String.to_integer(value), 0)
+
+
+      def value_to_field_type(value, :float) when is_float(value), do: value
       def value_to_field_type(value, :float), do: elem(String.to_float(value), 0)
+
       def value_to_field_type(value, :boolean) when is_boolean(value), do: value
       def value_to_field_type(value, :boolean), do: binary_to_atom(to_binary(value)) == true
     end
