@@ -1,5 +1,6 @@
 defmodule Atlas.Database.Client do
   import Atlas, only: [database_config: 0]
+  alias Atlas.Logger
 
   def raw_query(string) do
     :gen_server.call :db_server, {:query, string}
@@ -10,7 +11,7 @@ defmodule Atlas.Database.Client do
   end
 
   def query(query_string) do
-    IO.puts String.replace(query_string, "\n", "")
+    Logger.info(String.replace(query_string, "\n", ""))
     {:ok, _count, columns, rows} = raw_query(query_string)
 
     keyword_lists_from_query(columns, rows)
