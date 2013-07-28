@@ -8,7 +8,8 @@ defmodule Atlas.DatabaseConfig do
       username: "",
       password: "",
       host: "localhost",
-      pool: 5
+      pool: 5,
+      log_level: :debug
     ]
   end
 
@@ -19,7 +20,8 @@ defmodule Atlas.DatabaseConfig do
       username: "",
       password: "",
       host: "localhost",
-      pool: 5
+      pool: 5,
+      log_level: :debug
     ]
   end
 
@@ -30,7 +32,8 @@ defmodule Atlas.DatabaseConfig do
       username: "",
       password: "",
       host: "",
-      pool: 5
+      pool: 5,
+      log_level: :warn
     ]
   end
 end
