@@ -55,7 +55,7 @@ end
 ## Query Builder
 
 ### Examples
-```
+```elixir
 iex> User.where(email: "user@example.com")
      |> User.where("state IS NOT NULL")
      |> User.order(update_at: :asc)
@@ -76,7 +76,7 @@ User.Record[id: 5, archived: true, is_site_admin: false...]
 ```
 
 #### Queries are composable
-```
+```elixir
 defmodule UserSearch do
   import User
   
