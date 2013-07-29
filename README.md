@@ -6,10 +6,11 @@ Atlas is Object Relational Mapper for Elixir. (Work in progress. Expect breaking
 - Postgres Adapter
 - Validations
 - Schema definitions
-- Raw string query to Record support
+- Model query builder
+- Auto-generated 'find_by' functions for each field definition
 
 ## Roadmap
-- Full query to record DSL
+- Extend query builder to support joins
 - Additional SQL adapters
 - Schema migrations
 
@@ -19,6 +20,9 @@ Atlas is Object Relational Mapper for Elixir. (Work in progress. Expect breaking
 defmodule User do
   use Atlas.Model
 
+  @table :users
+  @primary_key :id
+  
   field :id, :integer
   field :email, :string
   field :is_site_admin, :boolean
@@ -35,8 +39,62 @@ defmodule User do
   def lives_in_ohio(record) do
     unless record.state == "OH", do: {:state, "You must live in Ohio"}
   end
+  
+  def find_admin_by_email(email) do
+    where(email: email, is_site_admin: true) |> first
+  end
+  
+  def admin_count do
+    where(archived: false)
+    |> where(is_site_admin: true)
+    |> count
+  end
+end
 ```
 
+## Query Builder
+
+### Examples
+```
+iex> User.where(email: "user@example.com")
+     |> User.where("state IS NOT NULL")
+     |> User.order(update_at: :asc)
+     |> User.to_records
+
+[User.Record[id: 5, archived: true, is_site_admin: false...], User.Record[id: 5, archived: true, is_site_admin: false...]]
+
+iex> user =  User.where(email: "user@example.com") |> User.first
+User.Record[id: 5, archived: false, is_site_admin: false...]
+iex> user.email
+user@example.com
+
+iex> User.where(archived: true) 
+     |> User.order(updated_at: :desc) 
+     |> User.first
+
+User.Record[id: 5, archived: true, is_site_admin: false...]
+```
+
+#### Queries are composable
+```
+defmodule UserSearch do
+  import User
+  def perform(options) do
+    is_site_admin = Keyword.get options, :is_site_admin, false
+    email         = Keyword.get options, :email, nil
+    scope         = User.scoped
+    
+    if email, do: scope = scope |> User.where(email: email) 
+    if is_site_admin, do: scope = 
+  end
+end
+```
+
+### Auto-generated finders
+
+`find_by_[field name]` functions are automatically generated for all defined fields. 
+For example, a User module with a `field :email, :string` definition would include a `User.find_by_email` function 
+that returns the first record matching that field from the database.
 
 ## Validation Support
 ```
@@ -66,7 +124,8 @@ defmodule Atlas.DatabaseConfig do
       username: "",
       password: "",
       host: "localhost",
-      pool: 5
+      pool: 5,
+      log_level: :debug
     ]
   end
 
@@ -77,7 +136,8 @@ defmodule Atlas.DatabaseConfig do
       username: "",
       password: "",
       host: "localhost",
-      pool: 5
+      pool: 5,
+      log_level: :debug
     ]
   end
 
@@ -88,7 +148,8 @@ defmodule Atlas.DatabaseConfig do
       username: "",
       password: "",
       host: "",
-      pool: 5
+      pool: 5,
+      log_level: :warn
     ]
   end
 end
