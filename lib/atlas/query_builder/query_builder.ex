@@ -178,7 +178,7 @@ defmodule Atlas.QueryBuilder do
 
       defp quoted_namespaced_column(column) do
         if @table do
-          "#{quoted_tablename}.#{adapter.quote_column(column)}"
+          "#{quote_tablename}.#{adapter.quote_column(column)}"
         else
           adapter.quote_column(column)
         end
@@ -188,8 +188,7 @@ defmodule Atlas.QueryBuilder do
         RelationProcessor.to_prepared_sql(relation)
       end
 
-      defp quoted_tablename, do: adapter.quote_tablename(@table)
-      defp quote_value(value), do: adapter.quote_value(value)
+      defp quote_tablename, do: adapter.quote_tablename(@table)
     end
   end
 end

@@ -51,10 +51,6 @@ defmodule Atlas.Database.PostgresAdapter do
 
   def quote_tablename(tablename), do: "\"#{tablename}\""
 
-  def quote_value(value), do: "'#{escape value}'"
-
-  def escape(value), do: value
-
   # Ex: [{:column,"id",:int4,4,-1,0}, {:column,"age",:int4,4,-1,0}]
   # => [:id, :age]
   defp normalize_cols(columns) do
