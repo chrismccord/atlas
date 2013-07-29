@@ -30,14 +30,14 @@ defmodule User do
   field :remember_token, :boolean
   field :password_reset_token, :string
   field :roles, :string
-  field :remember_token_expires_at, :string
-  field :password_reset_token_issued_at, :string
+  field :remember_token_expires_at, :datetime
+  field :password_reset_token_issued_at, :datetime
   field :newsletter, :boolean
-  field :created_at, :string
-  field :updated_at, :string
+  field :created_at, :datetime
+  field :updated_at, :datetime
   field :is_site_admin, :boolean
   field :archived, :boolean
-  field :newsletter_updated_at, :string
+  field :newsletter_updated_at, :datetime
 
   validates_numericality_of :id
   validates_presence_of :email

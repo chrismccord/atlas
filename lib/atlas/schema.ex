@@ -76,6 +76,9 @@ defmodule Atlas.Schema do
 
       def value_to_field_type(value, :boolean) when is_boolean(value), do: value
       def value_to_field_type(value, :boolean), do: binary_to_atom(to_binary(value)) == true
+
+      def value_to_field_type(value, :datetime) when is_binary(value), do: value
+      def value_to_field_type(value, :datetime), do: value
     end
   end
 

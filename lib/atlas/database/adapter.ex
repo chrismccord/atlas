@@ -10,11 +10,11 @@ defmodule Atlas.Database.Adapter do
   defcallback connect(config_info :: ConfigInfo) :: { :ok, pid } |
                                                     { :error, term }
 
-  defcallback query(pid, query :: binary) :: { :ok, count :: integer, cols :: list, rows :: list } |
-                                             { :error, term }
+  defcallback execute_query(pid, query :: binary) :: { :ok, count :: integer, cols :: list, rows :: list } |
+                                                     { :error, term }
 
-  # defcallback prepare_query(query :: binary , args :: list) :: { :ok, prepared_query :: binary } |
-  #                                                              { :error, term }
+  defcallback execute_prepared_query(pid, query :: binary , args :: list) :: { :ok, prepared_query :: binary } |
+                                                                             { :error, term }
 
   defcallback quote_column(column :: binary) :: column :: binary
 

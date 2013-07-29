@@ -16,13 +16,35 @@ defmodule Atlas.Database.PostgresAdapter do
     end
   end
 
-  def query(pid, string) do
-    case PG.squery(pid, string) do
+  def execute_query(pid, string) do
+    normalize_results(PG.squery(pid, string))
+  end
+
+  def execute_prepared_query(pid, query_string, args) do
+    normalize_results(PG.equery(pid, convert_bindings_to_native_format(query_string), args))
+  end
+  defp normalize_results(results) do
+    case results do
       {:ok, cols, rows}        -> {:ok, nil, normalize_cols(cols), normalize_rows(rows)}
       {:ok, count}             -> {:ok, count, [], []}
       {:ok, count, cols, rows} -> {:ok, count, normalize_cols(cols), normalize_rows(rows)}
       {:error, error }         -> {:error, error }
     end
+  end
+
+  defp convert_bindings_to_native_format(query_string) do
+    parts = query_string |> String.split("?")
+
+    parts
+    |> Enum.with_index
+    |> Enum.map(fn {part, index} ->
+         if index < Enum.count(parts) - 1 do
+           part <> "$#{index + 1}"
+         else
+           part
+         end
+       end)
+    |> Enum.join("")
   end
 
   def quote_column(column), do: "\"#{column}\""

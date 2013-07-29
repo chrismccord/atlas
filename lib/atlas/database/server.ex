@@ -21,8 +21,20 @@ defmodule Atlas.Database.Server do
     {:ok, {connections, Enum.first(connections)} }
   end
 
-  def handle_call({:query, string}, _from, {connections, conn}) do
-    {:reply, query(conn, string), {connections, next_conn(connections, conn)} }
+  def handle_call({:execute_query, string}, _from, {connections, conn}) do
+    {
+      :reply,
+      execute_query(conn, string),
+      {connections, next_conn(connections, conn)}
+    }
+  end
+
+  def handle_call({:execute_prepared_query, string, args}, _from, {connections, conn}) do
+    {
+      :reply,
+      execute_prepared_query(conn, string, args),
+      {connections, next_conn(connections, conn)}
+    }
   end
 
   defp connect_all(config) do
@@ -45,7 +57,11 @@ defmodule Atlas.Database.Server do
     config.adapter.connect(config)
   end
 
-  defp query(conn, string) do
-    conn.adapter.query(conn.pid, string)
+  defp execute_query(conn, string) do
+    conn.adapter.execute_query(conn.pid, string)
+  end
+
+  defp execute_prepared_query(conn, string, args) do
+    conn.adapter.execute_prepared_query(conn.pid, string, args)
   end
 end
