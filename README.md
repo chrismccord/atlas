@@ -79,15 +79,21 @@ User.Record[id: 5, archived: true, is_site_admin: false...]
 ```
 defmodule UserSearch do
   import User
+  
   def perform(options) do
-    is_site_admin = Keyword.get options, :is_site_admin, false
-    email         = Keyword.get options, :email, nil
-    scope         = User.scoped
+    is_admin = Keyword.get options, :is_site_admin, false
+    email    = Keyword.get options, :email, nil
+    scope    = User.scoped
     
-    if email, do: scope = scope |> User.where(email: email) 
-    if is_site_admin, do: scope = 
+    scope = scope |> where(is_site_admin: is_admin)
+    if email, do: scope = scope |> where(email: email) 
+    
+    scope |> to_records
   end
 end
+
+iex> UserSearch.perform(is_site_admin: true, email: "user@example.com")
+[User.Record[email: "user@example.com"]]
 ```
 
 ### Auto-generated finders
