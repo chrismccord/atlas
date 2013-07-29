@@ -79,6 +79,10 @@ defmodule Atlas.QueryBuilder do
 
       def __atlas__(:table), do: @table
 
+      def scoped do
+        Relation.new(from: @table)
+      end
+
       def where(kwlist) when is_list(kwlist) do
         where Relation.new(from: @table), kwlist
       end
