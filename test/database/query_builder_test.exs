@@ -2,46 +2,11 @@ Code.require_file "../test_helper.exs", __DIR__
 
 defmodule Atlas.QueryBuilderTest do
   use ExUnit.Case
-  alias Atlas.Database.Client
-
-  def create_table do
-    drop_table
-    {:ok, _} = Client.raw_query """
-    CREATE TABLE models (
-      id int8 NOT NULL,
-      name varchar(255),
-      state varchar(255),
-      active boolean,
-      age int8,
-      PRIMARY KEY (id)
-    )
-    """
-  end
-
-  def drop_table do
-    {:ok, _} = Client.raw_query "DROP TABLE IF EXISTS models"
-  end
-
-  def create_user(attributes) do
-    bindings = Enum.map_join 1..Enum.count(attributes), ", ", fn i -> "$#{i}" end
-    columns  = Keyword.keys(attributes) |> Enum.join ", "
-    values   = Keyword.values(attributes)
-
-    {:ok, _} = Client.raw_prepared_query(
-      "INSERT INTO models (#{columns}) VALUES(#{bindings})",
-       values
-    )
-  end
+  use Atlas.PersistenceTestHelper
 
   setup_all do
-    create_table
     create_user(id: 1, name: "older", age: 6, state: "OH", active: true)
     create_user(id: 2, name: "younger", age: 5, state: "OH", active: true)
-    :ok
-  end
-
-  teardown_all do
-    drop_table
     :ok
   end
 
