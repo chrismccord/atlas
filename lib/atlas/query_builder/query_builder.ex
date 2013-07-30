@@ -21,7 +21,9 @@ defmodule Atlas.QueryBuilder do
     end
 
     def wheres_to_sql(relation) do
-      relation.wheres |> Enum.map_join(" AND ", fn {query, _} -> "(#{query})" end)
+      if Enum.count(relation.wheres) > 0 do
+        "WHERE " <> (relation.wheres |> Enum.map_join(" AND ", fn {query, _} -> "(#{query})" end))
+      end
     end
 
     def order_by_to_sql(relation) do
@@ -47,7 +49,6 @@ defmodule Atlas.QueryBuilder do
 
       prepared_sql = """
       SELECT #{select} FROM #{from}
-      WHERE
       #{wheres}
       #{order_by_to_sql(relation)}
       """
@@ -117,6 +118,9 @@ defmodule Atlas.QueryBuilder do
         relation.update(limit: 1) |> swap_order_direction |> to_records |> Enum.first
       end
 
+      def order(options) do
+        order Relation.new(from: @table), options
+      end
       def order(relation, field) when is_atom(field) or is_binary(field) do
         relation.order_by(field)
       end
@@ -140,6 +144,7 @@ defmodule Atlas.QueryBuilder do
       end
 
       def count, do: count(Relation.new(from: @table))
+
       def count(relation) do
         relation = relation.update(count: true, order_by: nil, order_by_direction: nil)
         {sql, args} = relation |> to_prepared_sql

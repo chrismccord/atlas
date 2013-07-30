@@ -30,7 +30,7 @@ defmodule Atlas.Database.Adapter do
   driver library.
 
   The query results must be of the form:
-    {:ok, count, cols, rows}
+    {:ok, {count, cols, rows}}
     or
     {:error, reason}
 

@@ -25,9 +25,9 @@ defmodule Atlas.Database.PostgresAdapter do
   end
   defp normalize_results(results) do
     case results do
-      {:ok, cols, rows}        -> {:ok, nil, normalize_cols(cols), normalize_rows(rows)}
-      {:ok, count}             -> {:ok, count, [], []}
-      {:ok, count, cols, rows} -> {:ok, count, normalize_cols(cols), normalize_rows(rows)}
+      {:ok, cols, rows}        -> {:ok, {nil, normalize_cols(cols), normalize_rows(rows)}}
+      {:ok, count}             -> {:ok, {count, [], []}}
+      {:ok, count, cols, rows} -> {:ok, {count, normalize_cols(cols), normalize_rows(rows)}}
       {:error, error }         -> {:error, error }
     end
   end

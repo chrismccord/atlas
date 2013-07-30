@@ -2,12 +2,55 @@ Code.require_file "../test_helper.exs", __DIR__
 
 defmodule Atlas.QueryBuilderTest do
   use ExUnit.Case
+  alias Atlas.Database.Client
+
+  def create_table do
+    drop_table
+    {:ok, _} = Client.raw_query """
+    CREATE TABLE models (
+      id int8 NOT NULL,
+      name varchar(255),
+      state varchar(255),
+      active boolean,
+      age int8,
+      PRIMARY KEY (id)
+    )
+    """
+  end
+
+  def drop_table do
+    {:ok, _} = Client.raw_query "DROP TABLE IF EXISTS models"
+  end
+
+  def create_user(attributes) do
+    bindings = Enum.map_join 1..Enum.count(attributes), ", ", fn i -> "$#{i}" end
+    columns  = Keyword.keys(attributes) |> Enum.join ", "
+    values   = Keyword.values(attributes)
+
+    {:ok, _} = Client.raw_prepared_query(
+      "INSERT INTO models (#{columns}) VALUES(#{bindings})",
+       values
+    )
+  end
+
+  setup_all do
+    create_table
+    create_user(id: 1, name: "older", age: 6, state: "OH", active: true)
+    create_user(id: 2, name: "younger", age: 5, state: "OH", active: true)
+    :ok
+  end
+
+  teardown_all do
+    drop_table
+    :ok
+  end
 
   defmodule Model do
     use Atlas.Model
     @table :models
     @primary_key :id
 
+    field :id, :integer
     field :name, :string
     field :state, :string
     field :active, :boolean
@@ -73,27 +116,77 @@ defmodule Atlas.QueryBuilderTest do
 
 
   test "#first with no previous relation" do
+    assert Model.first.name == "older"
   end
 
   test "#first with previous relation" do
+    assert (Model.where(name: "younger") |> Model.first).name == "younger"
   end
 
   test "#first with ASC order" do
+    assert (Model.order(age: :asc) |> Model.first).name == "younger"
   end
 
   test "#first with DESC order" do
+    assert (Model.order(age: :desc) |> Model.first).name == "older"
   end
 
+
   test "#last with no previous relation" do
+    assert Model.last.name == "older"
   end
 
   test "#last with previous relation" do
+    assert (Model.where(name: "younger") |> Model.last).name == "younger"
   end
 
   test "#last with ASC order" do
+    assert (Model.order(age: :asc) |> Model.last).name == "older"
   end
 
   test "#last with DESC order" do
+    assert (Model.order(age: :desc) |> Model.last).name == "younger"
   end
 
+
+  test "#select returns Records witih only selected field set" do
+    record = Model.select(:id) |> Model.first
+    assert record.id == Model.first.id
+    refute record.name
+    refute record.name == Model.first.name
+  end
+
+
+  test "#where finds record based on attributes with keyword list" do
+    assert (Model.where(name: "younger") |> Model.first).age == 5
+  end
+
+  test "#where finds record based on attributes with string bound query" do
+    assert (Model.where("lower(name) = lower(?)", "younger") |> Model.first).age == 5
+  end
+
+  test "#where finds record based on attributes with string query" do
+    assert (Model.where("lower(name) = 'younger'") |> Model.first).age == 5
+  end
+
+  test "#to_records converts relation into list of Records" do
+    records = Model.where("age > 5") |> Model.to_records
+    assert Enum.count(records) == 1
+    assert Enum.first(records).name == "older"
+  end
+
+  test "#to_records returns empty list when query macthes zero records" do
+    records = Model.where("age > 500") |> Model.to_records
+    assert Enum.count(records) == 0
+  end
+
+
+  test "#count returns the number of found records" do
+    assert (Model.where("age > ?", 5) |> Model.count) == 1
+    assert (Model.where("age > ?", 50) |> Model.count) == 0
+  end
+
+  test "#count ignores order by" do
+    assert (Model.order(id: :asc) |> Model.where("age > ?", 5) |> Model.count) == 1
+  end
 end

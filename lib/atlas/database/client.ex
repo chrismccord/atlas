@@ -16,14 +16,14 @@ defmodule Atlas.Database.Client do
 
   def execute_query(query_string) do
     Logger.info(String.replace(query_string, "\n", ""))
-    {:ok, _count, columns, rows} = raw_query(query_string)
+    {:ok, {_count, columns, rows}} = raw_query(query_string)
 
     keyword_lists_from_query(columns, rows)
   end
 
   def execute_prepared_query(query_string, args) do
     Logger.info("#{String.replace(query_string, "\n", " ")}, #{inspect args}")
-    {:ok, _count, columns, rows} = raw_prepared_query(query_string, args)
+    {:ok, {_count, columns, rows}} = raw_prepared_query(query_string, args)
 
     keyword_lists_from_query(columns, rows)
   end
