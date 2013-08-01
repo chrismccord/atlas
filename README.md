@@ -1,6 +1,6 @@
 # Atlas
 
-Atlas is Object Relational Mapper for Elixir. (Work in progress. Expect breaking changes)
+Atlas is an Object Relational Mapper for Elixir. (Work in progress. Expect breaking changes)
 
 ## Current Features
 - Postgres Adapter
@@ -10,7 +10,9 @@ Atlas is Object Relational Mapper for Elixir. (Work in progress. Expect breaking
 - Auto-generated 'find_by' functions for each field definition
 
 ## Roadmap
+- Persistence layer, create, update, destroy of records
 - Extend query builder to support joins
+- Add model relationships, ie `belongs_to`, `has_many`, `has_many through:`
 - Additional SQL adapters
 - Schema migrations
 
@@ -22,7 +24,7 @@ defmodule User do
 
   @table :users
   @primary_key :id
-  
+
   field :id, :integer
   field :email, :string
   field :is_site_admin, :boolean
@@ -39,11 +41,11 @@ defmodule User do
   def lives_in_ohio(record) do
     unless record.state == "OH", do: {:state, "You must live in Ohio"}
   end
-  
+
   def find_admin_by_email(email) do
     where(email: email, is_site_admin: true) |> first
   end
-  
+
   def admin_count do
     where(archived: false)
     |> where(is_site_admin: true)
@@ -68,8 +70,8 @@ User.Record[id: 5, archived: false, is_site_admin: false...]
 iex> user.email
 user@example.com
 
-iex> User.where(archived: true) 
-     |> User.order(updated_at: :desc) 
+iex> User.where(archived: true)
+     |> User.order(updated_at: :desc)
      |> User.first
 
 User.Record[id: 5, archived: true, is_site_admin: false...]
@@ -79,15 +81,15 @@ User.Record[id: 5, archived: true, is_site_admin: false...]
 ```elixir
 defmodule UserSearch do
   import User
-  
+
   def perform(options) do
     is_admin = Keyword.get options, :is_site_admin, false
     email    = Keyword.get options, :email, nil
     scope    = User.scoped
-    
+
     scope = scope |> where(is_site_admin: is_admin)
-    if email, do: scope = scope |> where(email: email) 
-    
+    if email, do: scope = scope |> where(email: email)
+
     scope |> to_records
   end
 end
@@ -98,8 +100,8 @@ iex> UserSearch.perform(is_site_admin: true, email: "user@example.com")
 
 ### Auto-generated finders
 
-`find_by_[field name]` functions are automatically generated for all defined fields. 
-For example, a User module with a `field :email, :string` definition would include a `User.find_by_email` function 
+`find_by_[field name]` functions are automatically generated for all defined fields.
+For example, a User module with a `field :email, :string` definition would include a `User.find_by_email` function
 that returns the first record matching that field from the database.
 
 ## Validation Support
