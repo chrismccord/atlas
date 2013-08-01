@@ -37,10 +37,4 @@ defmodule Atlas.ClientTest do
     row = Enum.first Client.execute_prepared_query("SELECT id FROM models WHERE id = ?", [1])
     assert row[:id] == "1"
   end
-
-  test "#keyword_lists_from_query" do
-  end
-
-  test "#keyword_lists_to_records" do
-  end
 end
