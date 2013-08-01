@@ -1,6 +1,10 @@
 defmodule Atlas.Logger do
   import Atlas, only: [database_config: 0]
 
+  def log_path do
+    Path.join([:code.lib_dir(:atlas, :log), "#{Mix.env}.log"])
+  end
+
   def log_level, do: database_config[:log_level]
 
   def enabled?(:debug), do: log_level == :debug
@@ -21,5 +25,10 @@ defmodule Atlas.Logger do
     if enabled?(:warn), do: puts(string)
   end
 
-  def puts(string), do: IO.puts string
+  def puts(string) do
+    :gen_server.call :logger_server, {:write, string}
+    if in_console?, do: IO.puts string
+  end
+
+  def in_console?, do: IEx.started?
 end
