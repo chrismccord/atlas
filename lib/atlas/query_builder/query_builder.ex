@@ -35,6 +35,10 @@ defmodule Atlas.QueryBuilder do
       end
     end
 
+    def limit_to_sql(relation) do
+      if relation.limit, do: "LIMIT #{relation.limit}"
+    end
+
     def bound_arguments(relation) do
       relation.wheres
       |> Enum.map(fn {_query, values} -> values end)
@@ -51,6 +55,7 @@ defmodule Atlas.QueryBuilder do
       SELECT #{select} FROM #{from}
       #{wheres}
       #{order_by_to_sql(relation)}
+      #{limit_to_sql(relation)}
       """
 
       { prepared_sql, bound_args}
@@ -136,6 +141,13 @@ defmodule Atlas.QueryBuilder do
           :desc -> :asc
           _ -> :desc
         end)
+      end
+
+      def limit(number) do
+        limit Relation.new(from: @table), number
+      end
+      def limit(relation, number) do
+        relation.limit(number)
       end
 
       def select(column), do: select(Relation.new(from: @table), column)
