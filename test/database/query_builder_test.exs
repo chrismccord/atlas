@@ -154,4 +154,16 @@ defmodule Atlas.QueryBuilderTest do
   test "#count ignores order by" do
     assert (Model.order(id: :asc) |> Model.where("age > ?", 5) |> Model.count) == 1
   end
+
+  test "#limit limits records given number with no prior relation" do
+    assert Model.limit(1) |> Model.to_records |> Enum.count == 1
+  end
+
+  test "#limit limits records given number with prior relation" do
+    assert Model.where("age > 1") |> Model.limit(1) |> Model.to_records |> Enum.count == 1
+  end
+
+  test "#limit orverwrites previous limit" do
+    assert Model.limit(2) |> Model.limit(1) |> Model.to_records |> Enum.count == 1
+  end
 end
