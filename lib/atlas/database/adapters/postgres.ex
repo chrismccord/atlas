@@ -21,6 +21,7 @@ defmodule Atlas.Database.PostgresAdapter do
   end
 
   def execute_prepared_query(pid, query_string, args) do
+    args = Enum.map args, denormalize_value(&1)
     normalize_results(PG.equery(pid, convert_bindings_to_native_format(query_string), args))
   end
   defp normalize_results(results) do

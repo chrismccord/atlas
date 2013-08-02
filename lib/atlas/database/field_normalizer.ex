@@ -9,4 +9,9 @@ defmodule Atlas.Database.FieldNormalizer do
   def normalize_value("f"), do: false
   def normalize_value(timestamp = {{_, _, _}, {_, _, _}}), do: timestamp
   def normalize_value(value), do: to_binary(value)
+
+  def denormalize_value(nil), do: :null
+  def denormalize_value(true), do: "t"
+  def denormalize_value(false), do: "f"
+  def denormalize_value(value), do: value
 end
