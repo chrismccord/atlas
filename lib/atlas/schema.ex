@@ -33,8 +33,11 @@ defmodule Atlas.Schema do
     quote do
       Module.register_attribute __MODULE__, :fields, accumulate: true,
                                                      persist: false
-
       import unquote(__MODULE__)
+
+      @table nil
+      @primary_key nil
+      @default_primary_key "id"
 
       @before_compile unquote(__MODULE__)
     end
@@ -43,9 +46,16 @@ defmodule Atlas.Schema do
 
   defmacro __before_compile__(_env) do
     quote do
+      @table to_binary(@table)
+      @primary_key to_binary(@primary_key || @default_primary_key)
+
+      def __atlas__(:table), do: @table
+
       defrecord Record, fields_to_kwlist(@fields)
 
       def __atlas__(:fields), do: @fields
+
+      def primary_key_value(record), do: Atlas.Record.get(record, binary_to_atom(@primary_key))
 
       def raw_query_results_to_records(results) do
         results

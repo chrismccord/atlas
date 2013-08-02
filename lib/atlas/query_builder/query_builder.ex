@@ -1,77 +1,15 @@
 defmodule Atlas.QueryBuilder do
   alias Atlas.Database.Client
+  alias Atlas.QueryBuilder.RelationProcessor
 
   defrecord Relation, from: nil, wheres: [], select: nil, includes: [], joins: [], limit: nil,
                       offset: nil, order_by: nil, order_by_direction: nil, count: false
-
-  defmodule RelationProcessor do
-    import Client, only: [adapter: 0]
-
-    def select_to_sql(relation = Relation[select: nil, count: true]) do
-      "COUNT(#{quote_tablename(relation)}.*)"
-    end
-    def select_to_sql(relation = Relation[select: nil]) do
-      "#{quote_tablename(relation)}.*"
-    end
-    def select_to_sql(relation = Relation[count: true]) do
-      "COUNT(#{quote_tablename(relation)}.#{relation.select})"
-    end
-    def select_to_sql(relation) do
-      "#{quote_tablename(relation)}.#{relation.select}"
-    end
-
-    def wheres_to_sql(relation) do
-      if Enum.count(relation.wheres) > 0 do
-        "WHERE " <> (relation.wheres |> Enum.map_join(" AND ", fn {query, _} -> "(#{query})" end))
-      end
-    end
-
-    def order_by_to_sql(relation) do
-      Relation[order_by: order_by, order_by_direction: direction] = relation
-      if order_by do
-        """
-        ORDER BY #{order_by}#{if direction, do: " #{String.upcase to_binary(direction)}"}
-        """
-      end
-    end
-
-    def limit_to_sql(relation) do
-      if relation.limit, do: "LIMIT #{relation.limit}"
-    end
-
-    def bound_arguments(relation) do
-      relation.wheres
-      |> Enum.map(fn {_query, values} -> values end)
-      |> List.flatten
-    end
-
-    def to_prepared_sql(relation) do
-      select     = select_to_sql(relation)
-      from       = quote_tablename(relation)
-      wheres     = wheres_to_sql(relation)
-      bound_args = bound_arguments(relation)
-
-      prepared_sql = """
-      SELECT #{select} FROM #{from}
-      #{wheres}
-      #{order_by_to_sql(relation)}
-      #{limit_to_sql(relation)}
-      """
-
-      { prepared_sql, bound_args}
-    end
-
-    defp quote_tablename(relation), do: adapter.quote_tablename(relation.from)
-  end
 
   defmacro __using__(_options) do
     quote do
       import unquote(__MODULE__)
       import Client, only: [adapter: 0]
 
-      @table nil
-      @primary_key nil
-      @default_primary_key "id"
       @binding_placeholder "?"
 
       @before_compile unquote(__MODULE__)
@@ -80,24 +18,23 @@ defmodule Atlas.QueryBuilder do
 
   defmacro __before_compile__(_env) do
     quote do
-      @table to_binary(@table)
-      @primary_key to_binary(@primary_key || @default_primary_key)
-
-      def __atlas__(:table), do: @table
-
-      def scoped do
+      def new_base_relation do
         Relation.new(from: @table)
       end
 
+      def scoped do
+        new_base_relation
+      end
+
       def where(kwlist) when is_list(kwlist) do
-        where Relation.new(from: @table), kwlist
+        where new_base_relation, kwlist
       end
       def where(relation = Relation[], kwlist) when is_list(kwlist) do
         relation.wheres(relation.wheres ++ [kwlist_to_bound_query(kwlist)])
       end
 
       def where(query_string, values) when is_binary(query_string) do
-        where Relation.new(from: @table), query_string, List.flatten([values])
+        where new_base_relation, query_string, List.flatten([values])
       end
       def where(relation = Relation[], query_string, values) when is_binary(query_string) do
         relation.wheres(relation.wheres ++ [{query_string, List.flatten([values])}])
@@ -110,21 +47,21 @@ defmodule Atlas.QueryBuilder do
       end
 
       def first do
-        first Relation.new(from: @table)
+        first new_base_relation
       end
       def first(relation) do
         relation.limit(1) |> to_records |> Enum.first
       end
 
       def last do
-        last Relation.new(from: @table)
+        last new_base_relation
       end
       def last(relation) do
         relation.update(limit: 1) |> swap_order_direction |> to_records |> Enum.first
       end
 
       def order(options) do
-        order Relation.new(from: @table), options
+        order new_base_relation, options
       end
       def order(relation, field) when is_atom(field) or is_binary(field) do
         relation.order_by(field)
@@ -144,18 +81,18 @@ defmodule Atlas.QueryBuilder do
       end
 
       def limit(number) do
-        limit Relation.new(from: @table), number
+        limit new_base_relation, number
       end
       def limit(relation, number) do
         relation.limit(number)
       end
 
-      def select(column), do: select(Relation.new(from: @table), column)
+      def select(column), do: select(new_base_relation, column)
       def select(relation, column) do
         relation.select(to_binary(column))
       end
 
-      def count, do: count(Relation.new(from: @table))
+      def count, do: count(new_base_relation)
 
       def count(relation) do
         relation = relation.update(count: true, order_by: nil, order_by_direction: nil)
