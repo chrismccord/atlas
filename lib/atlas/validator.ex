@@ -210,7 +210,10 @@ defmodule Atlas.Validator do
 
       """
       def errors_on(record, attribute) do
-        full_error_message(attribute, errors(record)[attribute])
+        record
+        |> errors
+        |> Keyword.get_values(attribute)
+        |> Enum.map(full_error_message(attribute, &1))
       end
 
       defp full_error_message(attribute, nil), do: nil

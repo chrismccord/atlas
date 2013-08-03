@@ -60,7 +60,7 @@ defmodule Atlas.ModelTest do
 
   test "#errors_on returns full error message for attribute" do
     assert TestModule.errors_on(invalid_record, :name) ==
-      "name must be greater than 2 and less than 6 characters"
+      ["name must be greater than 2 and less than 6 characters"]
   end
 
   test "#errors_on returns full error without attribute prefix if message starts with '_'" do
@@ -69,7 +69,7 @@ defmodule Atlas.ModelTest do
       validates_length_of :name, within: 2..10, message: "Enter a reasonable name"
     end
     assert ErrorsOnCustom.errors_on(TestRecord.new(name: "A"), :name) ==
-      "Enter a reasonable name"
+      ["Enter a reasonable name"]
   end
 
   test "#errors_on returns full error with attribute prefix if message starts with '_'" do
@@ -78,7 +78,7 @@ defmodule Atlas.ModelTest do
       validates_length_of :name, within: 2..10, message: "_ doesn't appear to be avalid"
     end
     assert ErrorsOnCustom2.errors_on(TestRecord.new(name: "A"), :name) ==
-      "name doesn't appear to be avalid"
+      ["name doesn't appear to be avalid"]
   end
 
   test "#validates_length_of with greather_than" do
