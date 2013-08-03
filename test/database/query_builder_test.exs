@@ -163,7 +163,22 @@ defmodule Atlas.QueryBuilderTest do
     assert Model.where("age > 1") |> Model.limit(1) |> Model.to_records |> Enum.count == 1
   end
 
-  test "#limit orverwrites previous limit" do
+  test "#limit overwrites previous limit" do
     assert Model.limit(2) |> Model.limit(1) |> Model.to_records |> Enum.count == 1
+  end
+
+
+  test "#offset offsets records given number with no prior relation" do
+    assert (Model.order(age: :asc) |> Model.offset(0) |> Model.first).age == 5
+    assert (Model.order(age: :asc) |> Model.offset(1) |> Model.first).age == 6
+  end
+
+  test "#offset offsets records given number with prior relation" do
+    assert (Model.offset(0) |> Model.order(age: :asc) |> Model.first).age == 5
+    assert (Model.offset(1) |> Model.order(age: :asc) |> Model.first).age == 6
+  end
+
+  test "#offset overwrites previous offset" do
+    assert (Model.offset(3) |> Model.offset(1) |> Model.order(age: :asc) |> Model.first).age == 6
   end
 end

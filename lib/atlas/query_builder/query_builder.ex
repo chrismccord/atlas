@@ -87,6 +87,13 @@ defmodule Atlas.QueryBuilder do
         relation.limit(number)
       end
 
+      def offset(number) do
+        offset new_base_relation, number
+      end
+      def offset(relation, number) do
+        relation.offset(number)
+      end
+
       def select(column), do: select(new_base_relation, column)
       def select(relation, column) do
         relation.select(to_binary(column))

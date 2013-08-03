@@ -32,9 +32,11 @@ defmodule Atlas.QueryBuilder.RelationProcessor do
     end
   end
 
-  def limit_to_sql(relation) do
-    if relation.limit, do: "LIMIT #{relation.limit}"
-  end
+  def limit_to_sql(Relation[limit: nil]), do: nil
+  def limit_to_sql(relation), do: "LIMIT #{relation.limit}"
+
+  def offset_to_sql(Relation[offset: nil]), do: nil
+  def offset_to_sql(relation), do: "OFFSET #{relation.offset}"
 
   def bound_arguments(relation) do
     relation.wheres
@@ -53,6 +55,7 @@ defmodule Atlas.QueryBuilder.RelationProcessor do
     #{wheres}
     #{order_by_to_sql(relation)}
     #{limit_to_sql(relation)}
+    #{offset_to_sql(relation)}
     """
 
     { prepared_sql, bound_args}
