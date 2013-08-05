@@ -104,8 +104,9 @@ defmodule Atlas.QueryBuilder do
       def count(relation) do
         relation = relation.update(count: true, order_by: nil, order_by_direction: nil)
         {sql, args} = relation |> to_prepared_sql
+        {:ok, results} = Client.execute_prepared_query(sql, args)
 
-        Client.execute_prepared_query(sql, args)
+        results
         |> Enum.first
         |> Keyword.get(:count)
         |> binary_to_integer
@@ -118,8 +119,8 @@ defmodule Atlas.QueryBuilder do
       end
 
       def find_by_sql({sql, bound_args}) do
-        Client.execute_prepared_query(sql, bound_args)
-        |> raw_query_results_to_records
+        {:ok, results} = Client.execute_prepared_query(sql, bound_args)
+        results |> raw_query_results_to_records
      end
 
       def kwlist_to_bound_query(equalities) do

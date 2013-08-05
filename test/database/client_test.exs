@@ -29,12 +29,14 @@ defmodule Atlas.ClientTest do
   end
 
   test "#execute_query returns query results as keyword lists" do
-    row = Enum.first Client.execute_query("SELECT id FROM models WHERE id = 1")
+    {:ok, results} = Client.execute_query("SELECT id FROM models WHERE id = 1")
+    row = Enum.first results
     assert row[:id] == "1"
   end
 
   test "#execute_prepared_query returns the results as keyword lists" do
-    row = Enum.first Client.execute_prepared_query("SELECT id FROM models WHERE id = ?", [1])
+    {:ok, results} = Client.execute_prepared_query("SELECT id FROM models WHERE id = ?", [1])
+    row = Enum.first results
     assert row[:id] == "1"
   end
 end

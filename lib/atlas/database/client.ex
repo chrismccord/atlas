@@ -17,15 +17,17 @@ defmodule Atlas.Database.Client do
   end
 
   def execute_query(query_string) do
-    {:ok, {_count, columns, rows}} = raw_query(query_string)
-
-    keyword_lists_from_query(columns, rows)
+    case raw_query(query_string) do
+      {:ok, {_, cols, rows}} -> {:ok, keyword_lists_from_query(cols, rows)}
+      {:error, reason}       -> {:error, reason}
+    end
   end
 
   def execute_prepared_query(query_string, args) do
-    {:ok, {_count, columns, rows}} = raw_prepared_query(query_string, args)
-
-    keyword_lists_from_query(columns, rows)
+    case raw_prepared_query(query_string, args) do
+      {:ok, {_, cols, rows}} -> {:ok, keyword_lists_from_query(cols, rows)}
+      {:error, reason}       -> {:error, reason}
+    end
   end
 
   defp keyword_lists_from_query(columns, rows) do
