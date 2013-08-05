@@ -10,18 +10,6 @@ defmodule Atlas.QueryBuilderTest do
     :ok
   end
 
-  defmodule Model do
-    use Atlas.Model
-    @table :models
-    @primary_key :id
-
-    field :id, :integer
-    field :name, :string
-    field :state, :string
-    field :active, :boolean
-    field :age, :integer
-  end
-
   test "wheres with query string only" do
     assert Model.where("name IS NOT NULL").wheres == [{"name IS NOT NULL", []}]
   end
@@ -180,5 +168,11 @@ defmodule Atlas.QueryBuilderTest do
 
   test "#offset overwrites previous offset" do
     assert (Model.offset(3) |> Model.offset(1) |> Model.order(age: :asc) |> Model.first).age == 6
+  end
+
+  test "#list_to_binding_placeholders transforms list into binding placeholders for query" do
+    assert Model.list_to_binding_placeholders([1, 2, 3]) == "?, ?, ?"
+    assert Model.list_to_binding_placeholders([1]) == "?"
+    assert Model.list_to_binding_placeholders([]) == ""
   end
 end

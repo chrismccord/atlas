@@ -154,6 +154,21 @@ defmodule Atlas.QueryBuilder do
         RelationProcessor.to_prepared_sql(relation)
       end
 
+      @doc """
+      Converts list into comma delimited binding placeholders for query.
+      Useful when transforming list into query bindings
+
+      Examples
+
+        iex> Model.list_to_binding_placeholders([1,2,3])
+        "?, ?, ?"
+      """
+      def list_to_binding_placeholders([]), do: ""
+      def list_to_binding_placeholders(collection) do
+        1..Enum.count(collection)
+        |> Enum.map_join(", ", fn i -> @binding_placeholder end)
+      end
+
       defp quote_tablename, do: adapter.quote_tablename(@table)
     end
   end
