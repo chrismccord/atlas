@@ -1,8 +1,6 @@
 Code.require_file "test_helper.exs", __DIR__
 
 
-
-
 defmodule Atlas.SchemaTest do
   use ExUnit.Case, async: true
   alias Atlas.Schema

@@ -1,9 +1,8 @@
 Code.require_file "test_helper.exs", __DIR__
 
-defrecord Atlas.RecordTest.User, name: nil
 defmodule Atlas.RecordTest do
   use ExUnit.Case, async: true
-  alias Atlas.RecordTest.User
+  defrecord User, name: nil
   alias Atlas.Record
 
   setup do
