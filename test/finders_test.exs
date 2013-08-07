@@ -10,19 +10,6 @@ defmodule Atlas.FindersTest do
     :ok
   end
 
-  defmodule Model do
-    use Atlas.Model
-    @table :models
-    @primary_key :id
-
-    field :id, :integer
-    field :name, :string
-    field :state, :string
-    field :active, :boolean
-    field :age, :integer
-  end
-
-
 
   test "creates find_by_id function" do
     assert Model.find_by_id(1).id == 1

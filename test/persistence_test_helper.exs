@@ -7,18 +7,29 @@ defmodule Atlas.PersistenceTestHelper do
         drop_table
         {:ok, _} = Client.raw_query """
         CREATE TABLE models (
-          id int8 NOT NULL,
+          id SERIAL PRIMARY KEY,
           name varchar(255),
           state varchar(255),
           active boolean,
-          age int8,
-          PRIMARY KEY (id)
+          age int8
         )
         """
       end
 
       def drop_table do
         {:ok, _} = Client.raw_query "DROP TABLE IF EXISTS models"
+      end
+
+      defmodule Model do
+        use Atlas.Model
+        @table :models
+        @primary_key :id
+
+        field :id, :integer
+        field :name, :string
+        field :state, :string
+        field :active, :boolean
+        field :age, :integer
       end
 
       def create_user(attributes) do

@@ -1,220 +1,234 @@
 Code.require_file "test_helper.exs", __DIR__
 
-defrecord Atlas.ModelTest.TestRecord, name: nil, total: nil, state: nil
-defmodule Atlas.ModelTest.TestModule do
+
+defmodule Atlas.Fixtures.Model do
   use Atlas.Model
 
+  field :name, :string
+  field :total, :float
+  field :state, :string
+
+  validates_presence_of :name
+  validates_length_of :name, greater_than: 2, less_than: 6
+  validates_length_of :name, within: 2..10, message: "Enter a reasonable name"
+  validates_length_of :name, within: 2..10, message: "_ doesn't appear to be avalid"
+  validates_length_of :name, greater_than: 2
+  validates_length_of :name, greater_than_or_equal: 3
+  validates_length_of :name, greater_than: 2, less_than: 10
+  validates_length_of :name, greater_than: 2, less_than_or_equal: 10
+
+  validates_numericality_of :total
+  validates_numericality_of :total, greater_than: 2
+  validates_numericality_of :total, greater_than_or_equal: 3
+  validates_numericality_of :total, greater_than: 20, less_than: 100
+  validates_numericality_of :total, greater_than: 50, less_than_or_equal: 80
+
+  validates_format_of :name, with: %r/.*\s.*/
+  validates_format_of :name, with: %r/.*\s.*/, message: "Your name must include first and last"
+
+  validates_inclusion_of :name, in: ["jane", "bob"]
+  validates_inclusion_of :name, in: ["jane", "bob"], message: "Select jane or bob"
+
+  validates :lives_in_ohio
+
+  def lives_in_ohio(record) do
+    unless record.state == "OH" do
+      {:state, "You must live in Ohio"}
+    end
+  end
+end
+
+defmodule Atlas.Fixtures.SimpleModel do
+  use Atlas.Model
+  field :name, :string
   validates_presence_of :name
   validates_length_of :name, greater_than: 2, less_than: 6
 end
 
-defmodule Atlas.ModelTest.Fixtures do
-  alias Atlas.ModelTest.TestRecord
-
-  def valid_record,   do: TestRecord.new(name: "Chris")
-  def invalid_record, do: TestRecord.new(name: "Name Too Long")
-end
-
 defmodule Atlas.ModelTest do
   use ExUnit.Case, async: true
-  import Atlas.ModelTest.Fixtures
-  alias Atlas.ModelTest.TestModule
-  alias Atlas.ModelTest.TestRecord
+  alias Atlas.Fixtures.Model
+  alias Atlas.Fixtures.SimpleModel
 
 
   test "it adds validations to the module" do
-    assert TestModule.__atlas__(:validations) == [
+    assert SimpleModel.__atlas__(:validations) == [
       {:length_of,:name,[greater_than: 2, less_than: 6]},
       {:presence_of,:name,[]}
     ]
   end
 
   test "#validate returns {:ok, record} when all validations return no errors" do
-    assert TestModule.validate(valid_record) == { :ok, valid_record }
+    assert SimpleModel.validate(SimpleModel.Record.new(name: "Chris")) ==
+      { :ok, SimpleModel.Record.new(name: "Chris") }
   end
 
   test "#validate returns {:error, reasons} when validations return errors" do
-    assert TestModule.validate(invalid_record) == {
+    assert SimpleModel.validate(SimpleModel.Record.new(name: "Name Too Long")) == {
       :error, [name: "_ must be greater than 2 and less than 6 characters"]
     }
   end
 
-  test "#valid? returns true when validations return no errors" do
-    assert TestModule.valid?(valid_record)
+  test "#valid? returns true if all validations pass" do
+    assert SimpleModel.valid?(SimpleModel.Record.new(name: "Chris"))
   end
 
-  test "#valid? returns false when validations return any errors" do
-    refute TestModule.valid?(invalid_record)
+  test "valid? returns false is any validation fails" do
+    refute SimpleModel.valid?(SimpleModel.Record.new(name: nil))
+    refute SimpleModel.valid?(SimpleModel.Record.new(name: "A"))
+    refute SimpleModel.valid?(SimpleModel.Record.new(name: "Name Too Long"))
   end
 
   test "#errors returns array of attribute, error message tuples" do
-    assert Enum.first(TestModule.errors(invalid_record)) == {
+    assert Enum.first(SimpleModel.errors(SimpleModel.Record.new(name: "Name Too Long"))) == {
       :name, "_ must be greater than 2 and less than 6 characters"
     }
   end
 
   test "#full_error_messages returns array of binaries containing expanded errors" do
-    assert Enum.first(TestModule.full_error_messages(invalid_record)) ==
+    assert Enum.first(SimpleModel.full_error_messages(SimpleModel.Record.new(name: "Name Too Long"))) ==
       "name must be greater than 2 and less than 6 characters"
   end
 
   test "#errors_on returns full error message for attribute" do
-    assert TestModule.errors_on(invalid_record, :name) ==
+    assert SimpleModel.errors_on(SimpleModel.Record.new(name: "Name Too Long"), :name) ==
       ["name must be greater than 2 and less than 6 characters"]
   end
 
+
   test "#errors_on returns full error without attribute prefix if message starts with '_'" do
-    defmodule ErrorsOnCustom do
-      use Atlas.Model
-      validates_length_of :name, within: 2..10, message: "Enter a reasonable name"
-    end
-    assert ErrorsOnCustom.errors_on(TestRecord.new(name: "A"), :name) ==
-      ["Enter a reasonable name"]
+    assert Model.errors_on(Model.Record.new(name: "A"), :name)
+           |> Enum.member?("Enter a reasonable name")
   end
 
   test "#errors_on returns full error with attribute prefix if message starts with '_'" do
-    defmodule ErrorsOnCustom2 do
-      use Atlas.Model
-      validates_length_of :name, within: 2..10, message: "_ doesn't appear to be avalid"
-    end
-    assert ErrorsOnCustom2.errors_on(TestRecord.new(name: "A"), :name) ==
-      ["name doesn't appear to be avalid"]
+    assert Model.errors_on(Model.Record.new(name: "A"), :name)
+           |> Enum.member?("name doesn't appear to be avalid")
   end
 
   test "#validates_length_of with greather_than" do
-    defmodule LengthOf do
-      use Atlas.Model
-      validates_length_of :name, greater_than: 2
-    end
-    errors = LengthOf.full_error_messages(TestRecord.new name: "DJ")
-
-    assert Enum.member? errors, "name must be greater than 2 characters"
-    assert LengthOf.valid?(TestRecord.new name: "DJ DUBS")
+    assert Model.errors_on(Model.Record.new(name: "A"), :name)
+           |> Enum.member?("name must be greater than 2 characters")
+    refute Model.errors_on(Model.Record.new(name: "Bob"), :name)
+           |> Enum.member?("name must be greater than 2 characters")
   end
 
   test "#validates_length_of with greather_than_or_equal" do
-    defmodule LengthOf1 do
-      use Atlas.Model
-      validates_length_of :name, greater_than_or_equal: 3
-    end
-    errors = LengthOf1.full_error_messages(TestRecord.new name: "DJ")
-
-    assert Enum.member? errors, "name must be greater than or equal to 3 characters"
-    assert LengthOf1.valid?(TestRecord.new name: "DJ DUBS")
+    assert Model.errors_on(Model.Record.new(name: "A"), :name)
+           |> Enum.member?("name must be greater than or equal to 3 characters")
+    refute Model.errors_on(Model.Record.new(name: "Ted"), :name)
+           |> Enum.member?("name must be greater than or equal to 3 characters")
   end
 
   test "#validates_length_of with greather_than and less_than" do
-    defmodule LengthOf2 do
-      use Atlas.Model
-      validates_length_of :name, greater_than: 2, less_than: 10
-    end
-    errors = LengthOf2.full_error_messages(TestRecord.new name: "DJ")
-
-    assert Enum.member? errors, "name must be greater than 2 and less than 10 characters"
-    assert LengthOf2.valid?(TestRecord.new name: "DJ DUBS")
-    refute LengthOf2.valid?(TestRecord.new name: "DJ DUBS TOO LONG")
+    assert Model.errors_on(Model.Record.new(name: "DJ DUBS TOO LONG"), :name)
+           |> Enum.member?("name must be greater than 2 and less than 10 characters")
+    refute Model.errors_on(Model.Record.new(name: "DJ DUBS"), :name)
+           |> Enum.member?("name must be greater than 2 and less than 10 characters")
   end
 
   test "#validates_length_of with greather_than and less_than_or_equal" do
-    defmodule LengthOf3 do
-      use Atlas.Model
-      validates_length_of :name, greater_than: 2, less_than_or_equal: 10
-    end
-    errors = LengthOf3.full_error_messages(TestRecord.new name: "DJ")
-
-    assert Enum.member? errors, "name must be greater than 2 and less than or equal to 10 characters"
-    assert LengthOf3.valid?(TestRecord.new name: "DJ DUBS")
-    refute LengthOf3.valid?(TestRecord.new name: "DJ DUBS TOO LONG")
+    assert Model.errors_on(Model.Record.new(name: "DJ DUBS TOO LONG"), :name)
+           |> Enum.member?("name must be greater than 2 and less than or equal to 10 characters")
+    assert Model.errors_on(Model.Record.new(name: "AB"), :name)
+           |> Enum.member?("name must be greater than 2 and less than or equal to 10 characters")
+    refute Model.errors_on(Model.Record.new(name: "DJ DUBS"), :name)
+           |> Enum.member?("name must be greater than 2 and less than or equal to 10 characters")
   end
 
   test "#validates_presence_of" do
-    defmodule PresenceOf do
-      use Atlas.Model
-      validates_presence_of :name
-    end
-    errors = PresenceOf.full_error_messages(TestRecord.new name: nil)
-
-    assert Enum.first(errors) == "name must not be blank"
-    assert PresenceOf.valid?(TestRecord.new name: "Chris")
-    refute PresenceOf.valid?(TestRecord.new name: nil)
+    assert Model.errors_on(Model.Record.new(name: nil), :name)
+           |> Enum.member?("name must not be blank")
+    refute Model.errors_on(Model.Record.new(name: "Max"), :name)
+           |> Enum.member?("name must be greater than 2 and less than 10 characters")
   end
 
   test "#validates_numericality_of" do
-    defmodule NumericalityOf do
-      use Atlas.Model
-      validates_numericality_of :total
-    end
-    errors = NumericalityOf.full_error_messages(TestRecord.new total: "bogus")
+    assert Model.errors_on(Model.Record.new(total: "bogus"), :total)
+           |> Enum.member?("total must be a valid number")
+    refute Model.errors_on(Model.Record.new(total: "1234"), :total)
+           |> Enum.member?("total must be a valid number")
+    refute Model.errors_on(Model.Record.new(total: "-12.34"), :total)
+           |> Enum.member?("total must be a valid number")
+    assert Model.errors_on(Model.Record.new(total: ""), :total)
+           |> Enum.member?("total must be a valid number")
+    refute Model.errors_on(Model.Record.new(total: 1234), :total)
+           |> Enum.member?("total must be a valid number")
+    refute Model.errors_on(Model.Record.new(total: -12.34), :total)
+           |> Enum.member?("total must be a valid number")
+    assert Model.errors_on(Model.Record.new(total: nil), :total)
+           |> Enum.member?("total must be a valid number")
+    assert Model.errors_on(Model.Record.new(total: []), :total)
+           |> Enum.member?("total must be a valid number")
+    assert Model.errors_on(Model.Record.new(total: true), :total)
+           |> Enum.member?("total must be a valid number")
+  end
 
-    assert Enum.first(errors) == "total must be a valid number"
-    assert NumericalityOf.valid?(TestRecord.new total: "1234")
-    assert NumericalityOf.valid?(TestRecord.new total: "-12.34")
-    refute NumericalityOf.valid?(TestRecord.new total: "")
-    assert NumericalityOf.valid?(TestRecord.new total: 1234)
-    assert NumericalityOf.valid?(TestRecord.new total: -12.34)
-    refute NumericalityOf.valid?(TestRecord.new total: nil)
-    refute NumericalityOf.valid?(TestRecord.new total: [])
-    refute NumericalityOf.valid?(TestRecord.new total: true)
+
+  test "#validates_numericality_of with greather_than" do
+    assert Model.errors_on(Model.Record.new(total: 2), :total)
+           |> Enum.member?("total must be greater than 2")
+    refute Model.errors_on(Model.Record.new(total: 3), :total)
+           |> Enum.member?("total must be greater than 2")
+  end
+
+  test "#validates_numericality_of with greather_than_or_equal" do
+    assert Model.errors_on(Model.Record.new(total: 2), :total)
+           |> Enum.member?("total must be greater than or equal to 3")
+    refute Model.errors_on(Model.Record.new(total: 10), :total)
+           |> Enum.member?("total must be greater than or equal to 3")
+  end
+
+  test "#validates_numericality_of with greather_than and less_than" do
+    assert Model.errors_on(Model.Record.new(total: 19), :total)
+           |> Enum.member?("total must be greater than 20 and less than 100")
+    assert Model.errors_on(Model.Record.new(total: 101), :total)
+           |> Enum.member?("total must be greater than 20 and less than 100")
+    refute Model.errors_on(Model.Record.new(total: 99), :total)
+           |> Enum.member?("total must be greater than 20 and less than 100")
+  end
+
+  test "#validates_numericality_of with greather_than and less_than_or_equal" do
+    assert Model.errors_on(Model.Record.new(total: 50), :total)
+           |> Enum.member?("total must be greater than 50 and less than or equal to 80")
+    assert Model.errors_on(Model.Record.new(total: 81), :total)
+           |> Enum.member?("total must be greater than 50 and less than or equal to 80")
+    refute Model.errors_on(Model.Record.new(total: 60), :total)
+           |> Enum.member?("total must be greater than 50 and less than or equal to 80")
   end
 
   test "#validates_format_of" do
-    defmodule FormatOf do
-      use Atlas.Model
-      validates_format_of :name, with: %r/.*\s.*/
-    end
-
-    errors = FormatOf.full_error_messages(TestRecord.new name: "Chris")
-    assert Enum.first(errors) == "name is not valid"
-    assert FormatOf.valid?(TestRecord.new name: "Chris McCord")
+    assert Model.errors_on(Model.Record.new(name: "Chris"), :name)
+           |> Enum.member?("name is not valid")
+    refute Model.errors_on(Model.Record.new(name: "Chris McCord"), :name)
+           |> Enum.member?("name is not valid")
   end
 
   test "#validates_format_of with custom error message" do
-    defmodule FormatOf2 do
-      use Atlas.Model
-      validates_format_of :name, with: %r/.*\s.*/, message: "Your name must include first and last"
-    end
-
-    errors = FormatOf2.full_error_messages(TestRecord.new name: "Chris")
-    assert Enum.first(errors) == "Your name must include first and last"
-    assert FormatOf2.valid?(TestRecord.new name: "Chris McCord")
+    assert Model.errors_on(Model.Record.new(name: "Chris"), :name)
+           |> Enum.member?("Your name must include first and last")
+    refute Model.errors_on(Model.Record.new(name: "Chris McCord"), :name)
+           |> Enum.member?("Your name must include first and last")
   end
 
   test "#validates_inclusion_of" do
-    defmodule InclusionOf do
-      use Atlas.Model
-      validates_inclusion_of :name, in: ["jane", "bob"]
-    end
-
-    errors = InclusionOf.full_error_messages(TestRecord.new name: "Chris")
-    assert Enum.first(errors) == "name must be one of jane, bob"
-    assert InclusionOf.valid?(TestRecord.new name: "jane")
+    assert Model.errors_on(Model.Record.new(name: "Chris"), :name)
+           |> Enum.member?("name must be one of jane, bob")
+    refute Model.errors_on(Model.Record.new(name: "jane"), :name)
+           |> Enum.member?("name must be one of jane, bob")
   end
 
   test "#validates_inclusion_of with custom error message" do
-    defmodule InclusionOf2 do
-      use Atlas.Model
-      validates_inclusion_of :name, in: ["jane", "bob"], message: "Select jane or bob"
-    end
-
-    errors = InclusionOf2.full_error_messages(TestRecord.new name: "Chris")
-    assert Enum.first(errors) == "Select jane or bob"
-    assert InclusionOf2.valid?(TestRecord.new name: "jane")
+    assert Model.errors_on(Model.Record.new(name: "Chris"), :name)
+           |> Enum.member?("Select jane or bob")
+    refute Model.errors_on(Model.Record.new(name: "jane"), :name)
+           |> Enum.member?("Select jane or bob")
   end
 
   test "#validates allows adding custom validations" do
-    defmodule CustomValidation do
-      use Atlas.Model
-      validates :lives_in_ohio
-      def lives_in_ohio(record) do
-        unless record.state == "OH" do
-          {:state, "You must live in Ohio"}
-        end
-      end
-    end
-    errors = CustomValidation.full_error_messages(TestRecord.new state: "CA")
-
-    assert Enum.first(errors) == "You must live in Ohio"
-    refute CustomValidation.valid? TestRecord.new state: "CA"
-    assert CustomValidation.valid? TestRecord.new state: "OH"
+    assert Model.errors_on(Model.Record.new(state: "CA"), :state)
+           |> Enum.member?("You must live in Ohio")
+    refute Model.errors_on(Model.Record.new(state: "OH"), :state)
+           |> Enum.member?("You must live in Ohio")
   end
 end
