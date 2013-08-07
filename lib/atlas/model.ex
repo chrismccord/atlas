@@ -6,6 +6,7 @@ defmodule Atlas.Model do
       use Atlas.QueryBuilder
       use Atlas.Validator
       use Atlas.Finders
+      use Atlas.Persistence
 
       @before_compile unquote(__MODULE__)
     end
