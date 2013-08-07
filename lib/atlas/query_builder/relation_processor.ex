@@ -41,7 +41,7 @@ defmodule Atlas.QueryBuilder.RelationProcessor do
   def bound_arguments(relation) do
     relation.wheres
     |> Enum.map(fn {_query, values} -> values end)
-    |> List.flatten
+    |> Enum.reduce([], fn value, acc -> acc ++ value end)
   end
 
   def to_prepared_sql(relation) do

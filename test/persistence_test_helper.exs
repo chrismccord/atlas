@@ -30,6 +30,7 @@ defmodule Atlas.PersistenceTestHelper do
         field :state, :string
         field :active, :boolean
         field :age, :integer
+        validates_numericality_of :age, greater_than: 0, less_than: 150
       end
 
       def create_user(attributes) do

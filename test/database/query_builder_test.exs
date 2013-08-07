@@ -171,8 +171,8 @@ defmodule Atlas.QueryBuilderTest do
   end
 
   test "#list_to_binding_placeholders transforms list into binding placeholders for query" do
-    assert Model.list_to_binding_placeholders([1, 2, 3]) == "?, ?, ?"
-    assert Model.list_to_binding_placeholders([1]) == "?"
-    assert Model.list_to_binding_placeholders([]) == ""
+    assert Atlas.QueryBuilder.list_to_binding_placeholders([1, 2, 3]) == "?, ?, ?"
+    assert Atlas.QueryBuilder.list_to_binding_placeholders([1]) == "?"
+    assert Atlas.QueryBuilder.list_to_binding_placeholders([]) == ""
   end
 end

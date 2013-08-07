@@ -1,6 +1,6 @@
 defmodule Atlas.Database.PostgresAdapter do
   @behaviour Atlas.Database.Adapter
-
+  import Atlas.QueryBuilder, only: [list_to_binding_placeholders: 1]
   import Atlas.Database.FieldNormalizer
   alias :pgsql, as: PG
 
@@ -20,9 +20,16 @@ defmodule Atlas.Database.PostgresAdapter do
     normalize_results(PG.squery(pid, string))
   end
 
+  @doc """
+  Executes prepared query with adapter after converting Atlas bindings to native formats
+
+  Returns "normalized" results with Elixir specific types coerced from DB binaries
+  """
   def execute_prepared_query(pid, query_string, args) do
-    args = Enum.map args, denormalize_value(&1)
-    normalize_results(PG.equery(pid, convert_bindings_to_native_format(query_string), args))
+    args = denormalize_values(args)
+    native_bindings = convert_bindings_to_native_format(query_string, args)
+
+    PG.equery(pid, native_bindings, List.flatten(args)) |> normalize_results
   end
   defp normalize_results(results) do
     case results do
@@ -33,9 +40,20 @@ defmodule Atlas.Database.PostgresAdapter do
     end
   end
 
-  defp convert_bindings_to_native_format(query_string) do
-    parts = query_string |> String.split("?")
 
+  @doc """
+  Convert Atlas query binding syntax to native adapter format.
+
+  Examples
+  ```
+  iex> convert_bindings_to_native_format("SELECT * FROM users WHERE id = ? AND archived = ?", [1, false])
+  SELECT * FROM users WHERE id = $1 AND archived = $2"
+
+  iex> convert_bindings_to_native_format("SELECT * FROM users WHERE id IN(?)", [[1,2,3]])
+  SELECT * FROM users WHERE id IN($1, $2, $3)
+  """
+  def convert_bindings_to_native_format(query_string, args) do
+    parts = expand_bindings(query_string, args) |> String.split("?")
     parts
     |> Enum.with_index
     |> Enum.map(fn {part, index} ->
@@ -46,6 +64,32 @@ defmodule Atlas.Database.PostgresAdapter do
          end
        end)
     |> Enum.join("")
+  end
+
+  @doc """
+  Expand binding placeholder "?" into "?, ?, ?..." when binding matches list
+
+  Examples
+  ```
+  iex> expand_bindings("SELECT * FROM users WHERE id IN(?)", [[1,2,3]])
+  "SELECT * FROM users WHERE id IN($1, $2, $3)"
+  ```
+  """
+  def expand_bindings(query_string, args) do
+    parts = query_string |> String.split("?") |> Enum.with_index
+
+    expanded_placeholders = Enum.map parts, fn {part, index} ->
+      if index < Enum.count(parts) - 1 do
+        case Enum.at(args, index) do
+          values when is_list(values) -> part <> list_to_binding_placeholders(values)
+          value -> part <> "?"
+        end
+      else
+        part
+      end
+    end
+
+    expanded_placeholders |> Enum.join("")
   end
 
   def quote_column(column), do: "\"#{column}\""
