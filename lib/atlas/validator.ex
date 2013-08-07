@@ -300,10 +300,46 @@ defmodule Atlas.Validator do
       end
 
       defp process_validation_form(record, {:numericality_of, attribute, options}) do
-        value   = Record.get(record, attribute)
-        message = Keyword.get options, :message, "_ must be a valid number"
+        value   = get(record, attribute)
+        message = Keyword.get options, :message
+        options = Keyword.delete options, :message
+        within  = Keyword.get options, :within
 
-        unless valid_number?(value), do: {attribute, message}
+        if !valid_number?(value) do
+          {attribute, message ||  "_ must be a valid number"}
+        else
+          default_error = case options do
+            [within: from..to] when not(value >= from and value <= to) ->
+              "_ must be between #{from} and #{to}"
+
+            [greater_than: gt, less_than: lt] when not(value > gt and value < lt) ->
+              "_ must be greater than #{gt} and less than #{lt}"
+
+            [greater_than_or_equal: gte, less_than: lt] when not(value >= gte and value < lt) ->
+              "_ must be greater than or equal to #{gte} and less than #{lt}"
+
+            [greater_than: gt, less_than_or_equal: lte] when not(value > gt and value <= lte) ->
+              "_ must be greater than #{gt} and less than or equal to #{lte}"
+
+            [greater_than_or_equal: gte, less_than_or_equal: lte] when not(value >= gte and value <= lte) ->
+              "_ must be greater than or equal to #{gte} and less than or equal to #{lte}"
+
+            [greater_than: gt] when not(value > gt) ->
+              "_ must be greater than #{gt}"
+
+            [less_than: lt] when not(value < lt) ->
+              "_ must be less than #{lt}"
+
+            [less_than_or_equal: lte] when not(value <= lte) ->
+              "_ must be less than or equal to #{lte}"
+
+            [greater_than_or_equal: gte] when not(value >= gte) ->
+              "_ must be greater than or equal to #{gte}"
+            _->
+          end
+
+          if default_error, do: {attribute, message || default_error}
+        end
       end
 
       defp process_validation_form(record, {:custom, method_name, options}) do

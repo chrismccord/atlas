@@ -37,7 +37,7 @@ defmodule Atlas.Schema do
 
       @table nil
       @primary_key nil
-      @default_primary_key "id"
+      @default_primary_key :id
 
       @before_compile unquote(__MODULE__)
     end
@@ -46,16 +46,16 @@ defmodule Atlas.Schema do
 
   defmacro __before_compile__(_env) do
     quote do
-      @table to_binary(@table)
-      @primary_key to_binary(@primary_key || @default_primary_key)
-
-      def __atlas__(:table), do: @table
+      @primary_key (@primary_key || @default_primary_key)
 
       defrecord Record, fields_to_kwlist(@fields)
 
+      def __atlas__(:table), do: @table
       def __atlas__(:fields), do: @fields
 
-      def primary_key_value(record), do: Atlas.Record.get(record, binary_to_atom(@primary_key))
+      def primary_key_value(record), do: Atlas.Record.get(record, @primary_key)
+
+      def to_list(record), do: Atlas.Record.to_list(record)
 
       def raw_query_results_to_records(results) do
         results
@@ -74,20 +74,36 @@ defmodule Atlas.Schema do
         if field, do: elem(field, 1)
       end
 
+      @doc """
+      Returns the attribute value from the record converted to its field type
+      """
+      def get(record, attribute) do
+        value_to_field_type(Atlas.Record.get(record, attribute), field_type_for_name(attribute))
+      end
+
       def value_to_field_type(value, :string) when is_binary(value), do: value
+      def value_to_field_type(nil,   :string), do: nil
       def value_to_field_type(value, :string), do: to_binary(value)
 
       def value_to_field_type(value, :integer) when is_integer(value), do: value
+      def value_to_field_type(nil,   :integer), do: nil
       def value_to_field_type(value, :integer), do: elem(String.to_integer(value), 0)
 
-
       def value_to_field_type(value, :float) when is_float(value), do: value
-      def value_to_field_type(value, :float), do: elem(String.to_float(value), 0)
+      def value_to_field_type(value, :float) when is_integer(value), do: value + 0.0
+      def value_to_field_type(nil,   :float), do: nil
+      def value_to_field_type(value, :float) do
+        case String.to_float(to_binary(value)) do
+          {value, _} -> value
+          :error     -> nil
+        end
+      end
 
       def value_to_field_type(value, :boolean) when is_boolean(value), do: value
       def value_to_field_type(value, :boolean), do: binary_to_atom(to_binary(value)) == true
 
       def value_to_field_type(value, :datetime) when is_binary(value), do: value
+      def value_to_field_type(nil,   :datetime), do: nil
       def value_to_field_type(value, :datetime), do: value
     end
   end
