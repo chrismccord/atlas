@@ -51,7 +51,7 @@ defmodule Atlas.PersistenceTest do
   test "#destroy deletes the record from the database" do
     {:ok, user} = Model.create(name: "Bob", age: 30)
     assert Model.find_by_name("Bob")
-    {:ok, user} = Model.destroy(user)
+    {:ok, _} = Model.destroy(user)
     refute Model.find_by_name("Bob")
   end
   test "#destroy sets the record primary key to nil" do
@@ -64,7 +64,7 @@ defmodule Atlas.PersistenceTest do
 
   test "#destroy_all with relation deletes all matching records from database" do
     Enum.each 1..10, fn i ->
-      {:ok, user} = Model.create(name: "Bob#{i}", age: i + 100)
+      {:ok, _} = Model.create(name: "Bob#{i}", age: i + 100)
     end
     scope = Model.where("age > ?", 100)
     count_before_destroy = scope |> Model.count
