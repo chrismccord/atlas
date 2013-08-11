@@ -64,19 +64,26 @@ defmodule Atlas.ModelTest do
   end
 
   test "#validate returns {:error, reasons} when validations return errors" do
-    assert SimpleModel.validate(SimpleModel.Record.new(name: "Name Too Long")) == {
-      :error, [name: "_ must be greater than 2 and less than 6 characters"]
+    record = SimpleModel.Record.new(name: "Name Too Long")
+    assert SimpleModel.validate(record) == {
+      :error, record, [name: "_ must be greater than 2 and less than 6 characters"]
     }
   end
 
-  test "#valid? returns true if all validations pass" do
-    assert SimpleModel.valid?(SimpleModel.Record.new(name: "Chris"))
+  test "#validate returns {:ok, record} if all validations pass" do
+    {:ok, user} = SimpleModel.validate(SimpleModel.Record.new(name: "Chris"))
+    assert user.name == "Chris"
   end
 
-  test "valid? returns false is any validation fails" do
-    refute SimpleModel.valid?(SimpleModel.Record.new(name: nil))
-    refute SimpleModel.valid?(SimpleModel.Record.new(name: "A"))
-    refute SimpleModel.valid?(SimpleModel.Record.new(name: "Name Too Long"))
+  test "validate returns {:ok, record, errors} is any validation fails" do
+    {:error, _, errors} = SimpleModel.validate(SimpleModel.Record.new(name: nil))
+    assert errors == SimpleModel.errors(SimpleModel.Record.new(name: nil))
+
+    {:error, _, errors} = SimpleModel.validate(SimpleModel.Record.new(name: "A"))
+    assert errors == SimpleModel.errors(SimpleModel.Record.new(name: "A"))
+
+    {:error, _, errors} = SimpleModel.validate(SimpleModel.Record.new(name: "Name Too Long"))
+    assert errors == SimpleModel.errors(SimpleModel.Record.new(name: "Name Too Long"))
   end
 
   test "#errors returns array of attribute, error message tuples" do

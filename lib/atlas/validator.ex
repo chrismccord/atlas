@@ -163,7 +163,7 @@ defmodule Atlas.Validator do
       def validate(record) do
         case errors(record) do
           []      -> {:ok, record}
-          errors  -> {:error, errors}
+          errors  -> {:error, record, errors}
         end
       end
 
@@ -233,9 +233,9 @@ defmodule Atlas.Validator do
         String.starts_with? message, @message_prefix_delimiter
       end
 
-      def valid?(record) do
-        record |> errors |> Enum.empty?
-      end
+      # def valid?(record) do
+      #   record |> errors |> Enum.empty?
+      # end
 
       defp process_validation_form(record, {:presence_of, attribute, options}) do
         value   = Record.get(record, attribute)

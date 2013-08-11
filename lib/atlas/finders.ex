@@ -27,7 +27,7 @@ defmodule Atlas.Finders do
     quote do
       Enum.each @fields, fn field ->
         field_name = elem(field, 0)
-        def binary_to_atom("find_by_#{field_name}"), quote(do: [value]), [] do
+        def binary_to_atom("with_#{field_name}"), quote(do: [value]), [] do
           quote do
             where([{unquote(field_name), value}])
           end

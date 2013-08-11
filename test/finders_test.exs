@@ -11,28 +11,28 @@ defmodule Atlas.FindersTest do
   end
 
 
-  test "creates find_by_id function" do
-    assert Model.find_by_id(1).id == 1
-    refute Model.find_by_id(123)
+  test "creates with_id function" do
+    assert Repo.first(Model.with_id(1)).id == 1
+    refute Repo.first(Model.with_id(123))
   end
 
-  test "creates find_by_name function" do
-    assert Model.find_by_name("older").name == "older"
-    refute Model.find_by_name("notexist")
+  test "creates with_name function" do
+    assert Repo.first(Model.with_name("older")).name == "older"
+    refute Repo.first(Model.with_name("notexist"))
   end
 
-  test "creates find_by_state function" do
-    assert Model.find_by_state("OH").state == "OH"
-    refute Model.find_by_state("notexist")
+  test "creates with_state function" do
+    assert Repo.first(Model.with_state("OH")).state == "OH"
+    refute Repo.first(Model.with_state("notexist"))
   end
 
-  test "creates find_by_active function" do
-    assert Model.find_by_active(true).id == 1
-    refute Model.find_by_active(false)
+  test "creates with_active function" do
+    assert Repo.first(Model.with_active(true)).id == 1
+    refute Repo.first(Model.with_active(false))
   end
 
-  test "creates find_by_age function" do
-    assert Model.find_by_age(5).name == "younger"
-    refute Model.find_by_age(123)
+  test "creates with_age function" do
+    assert Repo.first(Model.with_age(5)).name == "younger"
+    refute Repo.first(Model.with_age(123))
   end
 end

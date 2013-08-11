@@ -1,13 +1,12 @@
-defmodule Atlas.DatabaseConfig do
-  alias Atlas.Database.PostgresAdapter
+defmodule Repo do
+  use Atlas.Repo, adapter: Atlas.Database.PostgresAdapter
 
   def config(:dev) do
     [
-      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
-      host: "localhost",
+      host: "",
       pool: 5,
       log_level: :debug
     ]
@@ -15,11 +14,10 @@ defmodule Atlas.DatabaseConfig do
 
   def config(:test) do
     [
-      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
-      host: "localhost",
+      host: "",
       pool: 5,
       log_level: :debug
     ]
@@ -27,7 +25,6 @@ defmodule Atlas.DatabaseConfig do
 
   def config(:prod) do
     [
-      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",

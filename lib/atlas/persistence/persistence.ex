@@ -128,9 +128,9 @@ defmodule Atlas.Persistence do
         end
       end
 
-      def destroy_all(model, records) when is_list(records) do
+      def destroy_all(records, model) when is_list(records) do
         ids = Enum.map records, &model.primary_key_value(&1)
-        destroy_all(model, model.where([{model.primary_key, ids}]))
+        destroy_all(model.where([{model.primary_key, ids}]))
       end
       def destroy_all(query = Query[]) do
         {sql, args} = to_prepared_delete_sql(query, query.model)

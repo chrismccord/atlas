@@ -2,12 +2,12 @@ defmodule Atlas.Database.Client do
   alias Atlas.Logger
 
   def raw_query(string, repo) do
-    Logger.debug(String.replace(string, "\n", ""))
+    Logger.debug(String.replace(string, "\n", ""), repo)
     :gen_server.call repo.server_name, {:execute_query, string}
   end
 
   def raw_prepared_query(string, args, repo) do
-    Logger.debug("#{String.replace(string, "\n", " ")}, #{inspect args}")
+    Logger.debug("#{String.replace(string, "\n", " ")}, #{inspect args}", repo)
     :gen_server.call repo.server_name, {:execute_prepared_query, string, args}
   end
 

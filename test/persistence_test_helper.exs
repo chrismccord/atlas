@@ -5,7 +5,7 @@ defmodule Atlas.PersistenceTestHelper do
     quote do
       def create_table do
         drop_table
-        {:ok, _} = Client.raw_query """
+        sql = """
         CREATE TABLE models (
           id SERIAL PRIMARY KEY,
           name varchar(255),
@@ -14,10 +14,12 @@ defmodule Atlas.PersistenceTestHelper do
           age int8
         )
         """
+        {:ok, _} = Client.raw_query(sql , Repo)
+
       end
 
       def drop_table do
-        {:ok, _} = Client.raw_query "DROP TABLE IF EXISTS models"
+        {:ok, _} = Client.raw_query "DROP TABLE IF EXISTS models", Repo
       end
 
       defmodule Model do
@@ -40,7 +42,8 @@ defmodule Atlas.PersistenceTestHelper do
 
         {:ok, _} = Client.raw_prepared_query(
           "INSERT INTO models (#{columns}) VALUES(#{bindings})",
-           values
+           values,
+           Repo
         )
       end
 
