@@ -1,5 +1,4 @@
 defmodule Atlas.Schema do
-  alias Atlas.Database.Client
 
   @moduledoc """
   Provides schema definitions and Record generation through a `field` macro and
@@ -52,6 +51,8 @@ defmodule Atlas.Schema do
 
       def __atlas__(:table), do: @table
       def __atlas__(:fields), do: @fields
+
+      def table, do: @table
 
       def primary_key_value(record), do: Atlas.Record.get(record, @primary_key)
 

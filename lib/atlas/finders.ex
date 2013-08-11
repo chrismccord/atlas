@@ -29,7 +29,7 @@ defmodule Atlas.Finders do
         field_name = elem(field, 0)
         def binary_to_atom("find_by_#{field_name}"), quote(do: [value]), [] do
           quote do
-            where([{unquote(field_name), value}]) |> first
+            where([{unquote(field_name), value}])
           end
         end
       end

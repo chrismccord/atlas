@@ -96,6 +96,14 @@ defmodule Atlas.Database.PostgresAdapter do
 
   def quote_tablename(tablename), do: "\"#{tablename}\""
 
+  def quote_namespaced_column(table, column) do
+    if table do
+      "#{quote_tablename(table)}.#{quote_column(column)}"
+    else
+      quote_column(column)
+    end
+  end
+
   # Ex: [{:column,"id",:int4,4,-1,0}, {:column,"age",:int4,4,-1,0}]
   # => [:id, :age]
   defp normalize_cols(columns) do

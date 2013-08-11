@@ -42,4 +42,6 @@ defmodule Atlas.Database.Adapter do
   defcallback quote_column(column :: binary) :: column :: binary
 
   defcallback quote_tablename(table :: binary) :: tablename :: binary
+
+  defcallback quote_namespaced_column(table :: binary, column :: binary) :: namespaced_col :: binary
 end
