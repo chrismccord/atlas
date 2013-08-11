@@ -1,4 +1,5 @@
 defmodule Atlas.Database.Supervisor do
+
   use Supervisor.Behaviour
 
   alias Atlas.Database.ConfigInfo

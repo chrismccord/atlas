@@ -3,10 +3,9 @@ defmodule Atlas.Model do
   defmacro __using__(_options) do
     quote do
       use Atlas.Schema
-      use Atlas.QueryBuilder
+      use Atlas.Query.Builder
       use Atlas.Validator
       use Atlas.Finders
-      use Atlas.Persistence
 
       @before_compile unquote(__MODULE__)
     end

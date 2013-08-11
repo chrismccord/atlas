@@ -11,8 +11,8 @@ defmodule Atlas.Database.Server do
 
   defrecord Connection, pid: nil, adapter: nil
 
-  def start_link(config_options) do
-    :gen_server.start_link({:local, :db_server}, __MODULE__, [config_options], [])
+  def start_link(repo) do
+    :gen_server.start_link({:local, repo.server_name}, __MODULE__, [repo.database_config], [])
   end
 
   def init([config_options]) do

@@ -1,8 +1,5 @@
-defmodule Atlas.QueryBuilder do
-
-  defrecord Query, model: nil, from: nil, wheres: [], select: nil, includes: [], joins: [],
-                   limit: nil, offset: nil, order_by: nil, order_by_direction: nil, count: false
-
+defmodule Atlas.Query.Builder do
+  alias Atlas.Query.Query
 
   @doc """
   Converts list into comma delimited binding placeholders for query.

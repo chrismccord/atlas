@@ -5,7 +5,7 @@ defmodule Atlas do
 
 
   def start(_type, _config) do
-    Database.Supervisor.start_link(database_config)
+    # Database.Supervisor.start_link(database_config)
     Logger.Supervisor.start_link(Logger.log_path)
 
     {:ok, self}

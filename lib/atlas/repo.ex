@@ -1,16 +1,34 @@
 defmodule Atlas.Repo do
+  alias Atlas.Database
   alias Atlas.Database.Client
-  alias Atlas.QueryBuilder.Query
+  alias Atlas.Query.Query
 
   defmacro __using__(options) do
     quote do
       adapter = Keyword.fetch! unquote(options), :adapter
-      use Atlas.QueryBuilder.QueryProcessor, adapter: adapter
+      use Atlas.Query.Processor, adapter: adapter
+      use Atlas.Persistence
+
+      def start_link do
+        Atlas.Repo.start_link(__MODULE__)
+      end
+
+      def stop do
+        Atlas.Repo.stop(__MODULE__)
+      end
+
+      def database_config do
+        config(Mix.env) ++ [adapter: adapter]
+      end
+
+      def server_name do
+        binary_to_atom  "repo_server_#{String.downcase(to_binary(__MODULE__))}"
+      end
 
       def count(query = Query[]) do
         query = query.update(count: true, order_by: nil, order_by_direction: nil)
         {sql, args} = query |> to_prepared_sql(query.model)
-        {:ok, results} = Client.execute_prepared_query(sql, args)
+        {:ok, results} = Client.execute_prepared_query(sql, args, __MODULE__)
 
         results
         |> Enum.first
@@ -27,7 +45,7 @@ defmodule Atlas.Repo do
       def all(model), do: all(to_query(model))
 
       def find_by_sql({sql, bound_args}, model) do
-        {:ok, results} = Client.execute_prepared_query(sql, bound_args)
+        {:ok, results} = Client.execute_prepared_query(sql, bound_args, __MODULE__)
         results |> model.raw_query_results_to_records
       end
 
@@ -53,9 +71,48 @@ defmodule Atlas.Repo do
       end
     end
   end
+
+  def start_link(repo) do
+    Database.Supervisor.start_link(repo)
+  end
+
+  def stop(repo) do
+  end
 end
 
 defmodule Repo do
   use Atlas.Repo, adapter: Atlas.Database.PostgresAdapter
 
+  def config(:dev) do
+    [
+      database: "bly_development",
+      username: "chris",
+      password: "",
+      host: "localhost",
+      pool: 5,
+      log_level: :debug
+    ]
+  end
+
+  def config(:test) do
+    [
+      database: "atlas_test",
+      username: "chris",
+      password: "",
+      host: "localhost",
+      pool: 5,
+      log_level: :debug
+    ]
+  end
+
+  def config(:prod) do
+    [
+      database: "",
+      username: "",
+      password: "",
+      host: "",
+      pool: 5,
+      log_level: :warn
+    ]
+  end
 end

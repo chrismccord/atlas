@@ -1,5 +1,5 @@
-defmodule Atlas.QueryBuilder.QueryProcessor do
-  alias Atlas.QueryBuilder.Query
+defmodule Atlas.Query.Processor do
+  alias Atlas.Query.Query
 
   defmacro __using__(options) do
     quote do

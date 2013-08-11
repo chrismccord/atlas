@@ -1,6 +1,6 @@
 defmodule Atlas.Database.PostgresAdapter do
   @behaviour Atlas.Database.Adapter
-  import Atlas.QueryBuilder, only: [list_to_binding_placeholders: 1]
+  import Atlas.Query.Builder, only: [list_to_binding_placeholders: 1]
   import Atlas.Database.FieldNormalizer
   alias :pgsql, as: PG
 
