@@ -1,4 +1,4 @@
-defmodule Atlas.Database.PostgresAdapter do
+defmodule Atlas.Adapters.Postgres do
   @behaviour Atlas.Database.Adapter
   import Atlas.Query.Builder, only: [list_to_binding_placeholders: 1]
   import Atlas.Database.FieldNormalizer
@@ -82,7 +82,7 @@ defmodule Atlas.Database.PostgresAdapter do
       if index < Enum.count(parts) - 1 do
         case Enum.at(args, index) do
           values when is_list(values) -> part <> list_to_binding_placeholders(values)
-          value -> part <> "?"
+          _ -> part <> "?"
         end
       else
         part

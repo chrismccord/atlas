@@ -1,5 +1,5 @@
 defmodule Repo do
-  use Atlas.Repo, adapter: Atlas.Database.PostgresAdapter
+  use Atlas.Repo, adapter: Atlas.Adapters.Postgres
 
   def config(:dev) do
     [

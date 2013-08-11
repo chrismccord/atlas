@@ -13,7 +13,7 @@ defmodule Atlas.Query.Builder do
   def list_to_binding_placeholders([]), do: ""
   def list_to_binding_placeholders(collection) do
     1..Enum.count(collection)
-    |> Enum.map_join(", ", fn i -> "?" end)
+    |> Enum.map_join(", ", fn _ -> "?" end)
   end
 
   defmacro __using__(_options) do

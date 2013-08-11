@@ -76,6 +76,6 @@ defmodule Atlas.Repo do
     Database.Supervisor.start_link(repo)
   end
 
-  def stop(repo) do
+  def stop(_repo) do
   end
 end

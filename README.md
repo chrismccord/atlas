@@ -43,13 +43,13 @@ defmodule User do
   end
 
   def find_admin_by_email(email) do
-    where(email: email, is_site_admin: true) |> first
+    where(email: email, is_site_admin: true) |> Repo.first
   end
 
   def admin_count do
     where(archived: false)
     |> where(is_site_admin: true)
-    |> count
+    |> Repo.count
   end
 end
 ```
@@ -61,18 +61,18 @@ end
 iex> User.where(email: "user@example.com")
      |> User.where("state IS NOT NULL")
      |> User.order(update_at: :asc)
-     |> User.to_records
+     |> Repo.all
 
 [User.Record[id: 5, archived: true, is_site_admin: false...], User.Record[id: 5, archived: true, is_site_admin: false...]]
 
-iex> user =  User.where(email: "user@example.com") |> User.first
+iex> user =  User.where(email: "user@example.com") |> Repo.first
 User.Record[id: 5, archived: false, is_site_admin: false...]
 iex> user.email
 user@example.com
 
 iex> User.where(archived: true)
      |> User.order(updated_at: :desc)
-     |> User.first
+     |> Repo.first
 
 User.Record[id: 5, archived: true, is_site_admin: false...]
 ```
@@ -90,7 +90,7 @@ defmodule UserSearch do
     scope = scope |> where(is_site_admin: is_admin)
     if email, do: scope = scope |> where(email: email)
 
-    scope |> to_records
+    scope |> Repo.all
   end
 end
 
@@ -100,8 +100,8 @@ iex> UserSearch.perform(is_site_admin: true, email: "user@example.com")
 
 ### Auto-generated finders
 
-`find_by_[field name]` functions are automatically generated for all defined fields.
-For example, a User module with a `field :email, :string` definition would include a `User.find_by_email` function
+`with_[field name]` functions are automatically generated for all defined fields.
+For example, a User module with a `field :email, :string` definition would include a `User.with_email` function
 that returns the first record matching that field from the database.
 
 ## Validation Support
@@ -109,8 +109,9 @@ that returns the first record matching that field from the database.
 iex> user = User.Record.new(email: "invalid")
 User.Record[id: nil, email: "invalid", is_site_admin: nil...
 
-iex> User.valid? user
-false
+iex> User.validate user
+{:error, User.Record[newsletter_updated_at: ...}, [email: "Email must be valid", email: "_ must be between 5 and 255 characters",
+  email: "_ must not be blank"]}
 
 iex> User.full_error_messages user
 ["Email must be valid","email must be between 5 and 255 characters","email must not be blank","id must be a valid number"]
@@ -118,20 +119,20 @@ iex> User.full_error_messages user
 ```
 
 
-## Database Configuration
-Create a `database_config.ex` file in your project with an `Atlas.DatabaseConfig` module containing config methods for `:dev`, `:test`, and `:prod` environments:
+## Repo Database Configuration
+Create a `repo.ex` file in your project that uses Atlas.Repo with an adapter.
+Your Repo simply needs to be provide config functions for `:dev`, `:test`, and `:prod` environments:
 
 ```elixir
-defmodule Atlas.DatabaseConfig do
-  alias Atlas.Database.PostgresAdapter
+defmodule Repo do
+  use Atlas.Repo, adapter: Atlas.Adapters.Postgres
 
   def config(:dev) do
     [
-      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
-      host: "localhost",
+      host: "",
       pool: 5,
       log_level: :debug
     ]
@@ -139,11 +140,10 @@ defmodule Atlas.DatabaseConfig do
 
   def config(:test) do
     [
-      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
-      host: "localhost",
+      host: "",
       pool: 5,
       log_level: :debug
     ]
@@ -151,7 +151,6 @@ defmodule Atlas.DatabaseConfig do
 
   def config(:prod) do
     [
-      adapter: PostgresAdapter,
       database: "",
       username: "",
       password: "",
