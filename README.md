@@ -42,16 +42,17 @@ defmodule User do
     unless record.state == "OH", do: {:state, "You must live in Ohio"}
   end
 
-  def find_admin_by_email(email) do
-    where(email: email, is_site_admin: true) |> Repo.first
+  def admins do
+    where(archived: false) |> where(is_site_admin: true)
   end
-
-  def admin_count do
-    where(archived: false)
-    |> where(is_site_admin: true)
-    |> Repo.count
+  
+  def admin_with_email(email) do
+    admins |> where(email: email)
   end
 end
+
+iex> admin = Repo.first User.admin_with_email("foo@bar.com")
+User.Record[id: 5, email: "foo@bar.com", archived: false, is_site_admin: true...]
 ```
 
 ## Query Builder
@@ -119,7 +120,7 @@ iex> User.full_error_messages user
 ```
 
 
-## Repo Database Configuration
+## Repo Configuration
 Create a `repo.ex` file in your project that uses Atlas.Repo with an adapter.
 Your Repo simply needs to be provide config functions for `:dev`, `:test`, and `:prod` environments:
 
