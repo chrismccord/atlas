@@ -121,8 +121,9 @@ iex> User.full_error_messages user
 
 
 ## Repo Configuration
-Create a `repo.ex` file in your project that uses Atlas.Repo with an adapter.
-Your Repo simply needs to be provide config functions for `:dev`, `:test`, and `:prod` environments:
+Define at least one Repository in your project that uses Atlas.Repo with a supported adapter.
+Your Repo simply needs to be provide `config` functions for `:dev`, `:test`, and `:prod` environments. 
+After defining your repo, start its process within your application. 
 
 ```elixir
 defmodule Repo do
@@ -161,4 +162,6 @@ defmodule Repo do
     ]
   end
 end
+
+Repo.start_link
 ```
