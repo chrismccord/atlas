@@ -10,6 +10,18 @@ defmodule Atlas.RepoTest do
     :ok
   end
 
+  test "#find with model and primary key finds model record by primary key value" do
+    assert Repo.find(Model, 1).name == "older"
+    assert Repo.find(Model, 2).name == "younger"
+    assert Repo.find(Model, 0) == nil
+  end
+
+  test "#find with query scope and primary key value" do
+    assert Repo.find(Model.where(name: "older"), 1).name == "older"
+    assert Repo.find(Model.where(name: "older"), 2) == nil
+    assert Repo.find(Model.where(name: "older"), 0) == nil
+  end
+
   test "#first with no previous relation" do
     assert Repo.first(Model).name == "older"
   end

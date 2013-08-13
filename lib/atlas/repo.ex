@@ -25,6 +25,39 @@ defmodule Atlas.Repo do
         binary_to_atom  "repo_server_#{String.downcase(to_binary(__MODULE__))}"
       end
 
+
+      @doc """
+      Finds the model record when given previous query scope and value of primary key
+
+      Returns the namespaced model.Record if exists in database, nil otherwise
+
+      Examples
+
+        iex> Repo.find(User.admins, 1)
+        User.Record[id: 1..., is_site_admin: true]
+        iex> Repo.find(User.admins, 0)
+        nil
+      """
+      def find(query = Query[], primary_key_value) do
+        query |> query.model.where([{query.model.primary_key, primary_key_value}]) |> first
+      end
+
+      @doc """
+      Finds the model record when given value of primary key
+
+      Returns the namespaced model.Record if exists in database, nil otherwise
+
+      Examples
+
+        iex> Repo.find(User, 1)
+        User.Record[id: 1...]
+        iex> Repo.find(User, 0)
+        nil
+      """
+      def find(model, primary_key_value) do
+        model.where([{model.primary_key, primary_key_value}]) |> first
+      end
+
       def count(query = Query[]) do
         query = query.update(count: true, order_by: nil, order_by_direction: nil)
         {sql, args} = query |> to_prepared_sql(query.model)
