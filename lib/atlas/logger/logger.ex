@@ -29,5 +29,5 @@ defmodule Atlas.Logger do
     if in_console?, do: IO.puts string
   end
 
-  def in_console?, do: IEx.started?
+  def in_console?, do: Code.ensure_loaded?(IEx) && IEx.started?
 end
