@@ -103,8 +103,9 @@ iex> UserSearch.perform(is_site_admin: true, email: "user@example.com")
 ## Persistence
 
 Atlas uses the Repository pattern to decouple persistence from behavior, as well as allow multiple database connections 
-to different repositories for a robust and flexible persistence layer. When persisting data, a list of behaviors must 
-be included to run validation callbacks against for the Repo to proceed or halt with persistence actions.
+to different repositories for a robust and flexible persistence layer. When creating/updating/destroying data, 
+a list of behaviors must be included to run validation callbacks against for the Repo to proceed or halt with requested 
+actions.
 
 Examples
 
