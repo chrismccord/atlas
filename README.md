@@ -113,7 +113,8 @@ Examples
 iex> Repo.create(User, [age: 12], as: User)
 {:ok, User.Record[age: 12...]}
 
-iex> Repo.create(User, User.Record.new(age: 18), as: [User, Employee])
+iex> user = Repo.first(User)
+iex> Repo.update(user, [age: 18], as: [User, Employee])
 {:error, User.Record[age: 18...], ["employees must be greater than 21 years of age"]}
 
 iex> Repo.create(User, [age: 0], as: User)
