@@ -105,7 +105,7 @@ iex> UserSearch.perform(is_site_admin: true, email: "user@example.com")
 Atlas uses the Repository pattern to decouple persistence from behavior, as well as allow multiple database connections 
 to different repositories for a robust and flexible persistence layer. When creating/updating/destroying data, 
 a list of behaviors must be included to run validation callbacks against for the Repo to proceed or halt with requested 
-actions.
+actions via the `as:` option.
 
 Examples
 
@@ -131,14 +131,14 @@ end
 ```
 
 ```elixir
-iex> Repo.create(User, [age: 12], as: User)
+iex> Repo.create(User, [age: 12, name: "Dilbert"], as: User)
 {:ok, User.Record[age: 12...]}
 
 iex> user = Repo.first(User)
 iex> Repo.update(user, [age: 18], as: [User, Manager])
 {:error, User.Record[age: 18...], ["managers must be at least 21"]}
 
-iex> Repo.create(User, [age: 0], as: User)
+iex> Repo.create(User, [age: 0, name: "Chris"], as: User)
 {:error, User.Record[age: 0..], ["age must be between 1 and 150"]}
 ```
 
