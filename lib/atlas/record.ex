@@ -1,5 +1,7 @@
 defmodule Atlas.Record do
 
+  @reserved_fields [:model]
+
   @doc """
   Returns the attribute of the record given the key
   """
@@ -11,7 +13,7 @@ defmodule Atlas.Record do
   Converts a record into a keyword list
   """
   def to_list(record) do
-    lc {key, _} inlist record.__record__(:fields) do
+    lc {key, _} inlist record.__record__(:fields), !Enum.member?(@reserved_fields, key) do
       { key, get(record, key) }
     end
   end

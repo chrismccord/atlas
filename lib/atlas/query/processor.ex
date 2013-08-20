@@ -1,5 +1,6 @@
 defmodule Atlas.Query.Processor do
   alias Atlas.Query.Query
+  import Atlas.FieldConverter
 
   defmacro __using__(options) do
     quote do
@@ -118,7 +119,7 @@ defmodule Atlas.Query.Processor do
       end
       defp equality_to_bound_query({{key, values}, index}, model) when is_list(values) do
         cast_values = Enum.map values, fn value ->
-          model.value_to_field_type(value, model.field_type_for_name(key))
+          value_to_field_type(value, model.field_type_for_name(key))
         end
         if index > 0 do
           {"AND #{adapter.quote_namespaced_column(model.table, key)} IN(?)", cast_values}
@@ -127,7 +128,7 @@ defmodule Atlas.Query.Processor do
         end
       end
       defp equality_to_bound_query({{key, value}, index}, model) do
-        cast_val = model.value_to_field_type(value, model.field_type_for_name(key))
+        cast_val = value_to_field_type(value, model.field_type_for_name(key))
         if index > 0 do
           {"AND #{adapter.quote_namespaced_column(model.table, key)} = ?", cast_val}
         else

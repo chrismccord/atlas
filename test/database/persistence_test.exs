@@ -5,6 +5,11 @@ defmodule Atlas.PersistenceTest do
   use Atlas.PersistenceTestHelper
   alias Atlas.Database.Client
 
+  defmodule Manager do
+    use Atlas.Validator
+    validates_numericality_of :age, greater_than_or_equal: 20
+  end
+
   setup_all do
     create_user(name: "older", age: 6, state: "OH", active: true)
     create_user(name: "younger", age: 5, state: "OH", active: true)
@@ -22,7 +27,7 @@ defmodule Atlas.PersistenceTest do
     record = Repo.first(Model.where(name: "older"))
     assert record.age == 6
     {:ok, _} = Model.validate(record)
-    {:ok, record} = Repo.update(Model, record, age: 18)
+    {:ok, record} = Repo.update(record, [age: 18], as: Model)
     assert record.age == 18
     assert Repo.first(Model.where(name: "older")).age == 18
   end
@@ -30,41 +35,47 @@ defmodule Atlas.PersistenceTest do
     record = Repo.first(Model.where(name: "older"))
 
     {:ok, _} = Model.validate(record)
-    {:error, record_with_failed_attrs, errors} = Repo.update(Model, record, age: 0)
+    {:error, record_with_failed_attrs, errors} = Repo.update(record, [age: 0], as: Model)
     {:error, _, _} = Model.validate(record_with_failed_attrs)
     assert record_with_failed_attrs.age == 0
     assert :age in Keyword.keys(errors)
     assert Repo.first(Model.where(name: "older")).age == 6
   end
+  test "#update with additional behavior applies extra validations" do
+    {:ok, record} = Repo.create(Model, [name: "Future Manager", age: 18], as: Model)
+    {:error, record, _reasons} = Repo.update(record, [age: 11], as: [Model, Manager])
+    assert record.age == 11
+    assert Repo.first(Model.where(name: "Future Manager")).age == 18
+  end
 
   test "#create with keyword list inserts record attributes into the database" do
     refute Repo.first(Model.where(name: "José"))
-    {:ok, _user} = Repo.create(Model, name: "José", age: 30)
+    {:ok, _user} = Repo.create(Model, [name: "José", age: 30], as: Model)
     assert Repo.first(Model.where(name: "José"))
   end
   test "#create with record inserts record attributes into the database" do
     refute Repo.first(Model.where(name: "Joe"))
-    {:ok, _user} = Repo.create(Model, Model.Record.new(name: "Joe", age: 30))
+    {:ok, _user} = Repo.create(Model, Model.Record.new(name: "Joe", age: 30), as: Model)
     assert Repo.first(Model.where(name: "Joe"))
   end
 
   test "#destroy deletes the record from the database" do
-    {:ok, user} = Repo.create(Model, name: "Bob", age: 30)
+    {:ok, user} = Repo.create(Model, [name: "Bob", age: 30], as: Model)
     assert Repo.first(Model.where(name: "Bob"))
-    {:ok, _} = Repo.destroy(Model, user)
+    {:ok, _} = Repo.destroy(user, as: Model)
     refute Repo.first(Model.where(name: "Bob"))
   end
   test "#destroy sets the record primary key to nil" do
-    {:ok, user} = Repo.create(Model, name: "Bob", age: 30)
+    {:ok, user} = Repo.create(Model, [name: "Bob", age: 30], as: Model)
     assert user.id != nil
-    {:ok, user} = Repo.destroy(Model, user)
+    {:ok, user} = Repo.destroy(user, as: Model)
     assert user.id == nil
     refute Repo.persisted?(user, Model)
   end
 
   test "#destroy_all with relation deletes all matching records from database" do
     Enum.each 1..10, fn i ->
-      {:ok, _} = Repo.create(Model, name: "Bob#{i}", age: i + 100)
+      {:ok, _} = Repo.create(Model, [name: "Bob#{i}", age: i + 100], as: Model)
     end
     scope = Model.where("age > ?", 100)
     count_before_destroy = scope |> Repo.count
@@ -77,7 +88,7 @@ defmodule Atlas.PersistenceTest do
 
   test "#destroy_all with list of records deletes all records from database" do
     Enum.each 1..10, fn i ->
-      {:ok, _user} = Repo.create(Model, name: "Bob#{i}", age: i + 100)
+      {:ok, _user} = Repo.create(Model, [name: "Bob#{i}", age: i + 100], as: Model)
     end
     scope = Model.where("age > ?", 100)
     records = Repo.all(scope)

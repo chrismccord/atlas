@@ -1,4 +1,5 @@
 defmodule Atlas.Validator do
+  import Atlas.FieldConverter
 
   @moduledoc """
   Provides Model validations including validation rule definitions and error messages.
@@ -300,7 +301,7 @@ defmodule Atlas.Validator do
       end
 
       defp process_validation_form(record, {:numericality_of, attribute, options}) do
-        value   = get(record, attribute)
+        value   = value_to_field_type(Record.get(record, attribute), :float)
         message = Keyword.get options, :message
         options = Keyword.delete options, :message
         within  = Keyword.get options, :within
