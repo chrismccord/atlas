@@ -5,12 +5,12 @@ Atlas is an Object Relational Mapper for Elixir. (Work in progress. Expect break
 ## Current Features
 - Postgres Adapter
 - Validations
+- Persistence
 - Schema definitions
 - Model query builder
-- Auto-generated 'find_by' functions for each field definition
+- Auto-generated 'accessor' functions for each field definition
 
 ## Roadmap
-- Persistence layer, create, update, destroy of records
 - Extend query builder to support joins
 - Add model relationships, ie `belongs_to`, `has_many`, `has_many through:`
 - Additional SQL adapters
@@ -97,6 +97,26 @@ end
 
 iex> UserSearch.perform(is_site_admin: true, email: "user@example.com")
 [User.Record[email: "user@example.com"]]
+```
+
+
+## Persistence
+
+Atlas uses the Repository pattern to decouple persistence from behavior, as well as allow multiple database connections 
+to different repositories for a robust and flexible persistence layer. When persisting data, a list of behaviors must 
+be included to run validation callbacks against for the Repo to proceed or halt with persistence actions.
+
+Examples
+
+```elixir
+iex> Repo.create(User, [age: 12], as: User)
+{:ok, User.Record[age: 12...]}
+
+iex> Repo.create(User, User.Record.new(age: 18), as: [User, Employee])
+{:error, User.Record[age: 18...], ["employees must be greater than 21 years of age"]}
+
+iex> Repo.create(User, [age: 0], as: User)
+{:error, User.Record[age: 0..], ["age must be between 1 and 150"]}
 ```
 
 ### Auto-generated finders
