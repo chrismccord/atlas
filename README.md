@@ -110,12 +110,33 @@ actions.
 Examples
 
 ```elixir
+defmodule User do
+  use Atlas.Model
+  
+  @table :users
+  @primary_key :id
+  
+  field :age,  :integer
+  field :name, :string
+  
+  validates_numericality_of :age, within: 1..150
+  validates_presence_of :name
+end
+
+defmodule Manager do
+  use Atlas.Validator
+  
+  validates_numericality_of :age, greater_than_or_equal: 21, message: "managers must be at least 21"
+end
+```
+
+```elixir
 iex> Repo.create(User, [age: 12], as: User)
 {:ok, User.Record[age: 12...]}
 
 iex> user = Repo.first(User)
-iex> Repo.update(user, [age: 18], as: [User, Employee])
-{:error, User.Record[age: 18...], ["employees must be greater than 21 years of age"]}
+iex> Repo.update(user, [age: 18], as: [User, Manager])
+{:error, User.Record[age: 18...], ["managers must be at least 21"]}
 
 iex> Repo.create(User, [age: 0], as: User)
 {:error, User.Record[age: 0..], ["age must be between 1 and 150"]}
