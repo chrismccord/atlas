@@ -149,7 +149,7 @@ For example, a User module with a `field :email, :string` definition would inclu
 that returns the first record matching that field from the database.
 
 ## Validation Support
-```
+```elixir
 iex> user = User.Record.new(email: "invalid")
 User.Record[id: nil, email: "invalid", is_site_admin: nil...
 
