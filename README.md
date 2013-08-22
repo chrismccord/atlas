@@ -5,12 +5,12 @@ Atlas is an Object Relational Mapper for Elixir. (Work in progress. Expect break
 ## Current Features
 - Postgres Adapter
 - Validations
+- Persistence
 - Schema definitions
 - Model query builder
-- Auto-generated 'find_by' functions for each field definition
+- Auto-generated 'accessor' functions for each field definition
 
 ## Roadmap
-- Persistence layer, create, update, destroy of records
 - Extend query builder to support joins
 - Add model relationships, ie `belongs_to`, `has_many`, `has_many through:`
 - Additional SQL adapters
@@ -99,6 +99,49 @@ iex> UserSearch.perform(is_site_admin: true, email: "user@example.com")
 [User.Record[email: "user@example.com"]]
 ```
 
+
+## Persistence
+
+Atlas uses the Repository pattern to decouple persistence from behavior, as well as allow multiple database connections 
+to different repositories for a robust and flexible persistence layer. When creating/updating/destroying data, 
+a list of behaviors must be included to run validation callbacks against for the Repo to proceed or halt with requested 
+actions via the `as:` option.
+
+Examples
+
+```elixir
+defmodule User do
+  use Atlas.Model
+  
+  @table :users
+  @primary_key :id
+  
+  field :age,  :integer
+  field :name, :string
+  
+  validates_numericality_of :age, within: 1..150
+  validates_presence_of :name
+end
+
+defmodule Manager do
+  use Atlas.Validator
+  
+  validates_numericality_of :age, greater_than_or_equal: 21, message: "managers must be at least 21"
+end
+```
+
+```elixir
+iex> Repo.create(User, [age: 12, name: "Dilbert"], as: User)
+{:ok, User.Record[age: 12...]}
+
+iex> user = Repo.first(User)
+iex> Repo.update(user, [age: 18], as: [User, Manager])
+{:error, User.Record[age: 18...], ["managers must be at least 21"]}
+
+iex> Repo.create(User, [age: 0, name: "Chris"], as: User)
+{:error, User.Record[age: 0..], ["age must be between 1 and 150"]}
+```
+
 ### Auto-generated finders
 
 `with_[field name]` functions are automatically generated for all defined fields.
@@ -106,7 +149,7 @@ For example, a User module with a `field :email, :string` definition would inclu
 that returns the first record matching that field from the database.
 
 ## Validation Support
-```
+```elixir
 iex> user = User.Record.new(email: "invalid")
 User.Record[id: nil, email: "invalid", is_site_admin: nil...
 
