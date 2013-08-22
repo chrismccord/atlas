@@ -142,6 +142,52 @@ iex> Repo.create(User, [age: 0, name: "Chris"], as: User)
 {:error, User.Record[age: 0..], ["age must be between 1 and 150"]}
 ```
 
+## Accessors
+
+Accessors for assigning and retrieving model attributes are automatically defined
+from the shema field definitions.
+
+By default, Accessors are simply pass-throughs to the raw record setter and getter
+values; however, accessors can be overriden by the module for extended behavior
+and transformations before writing to, or after reading from the database.
+`assign` functions transform attributes when creating a new Record via `Model.new` and 
+before running model callbacks such as validations.
+
+Example attribute assignment:
+
+```elixir
+defmodule User do
+  use Atlas.Model
+  field :email, :string
+  field :name,  :string
+
+  def assign(user, :email, value), do: user.update(email: String.downcase(value))
+end
+
+iex> User.assign(user, :email, "USER@example.com")
+User[email: "user@example.com"]
+
+iex> User.new(email, "USER@example.com")
+User[email: "user@example.com"]
+```
+
+Example attribute retrieval:
+
+```elixir
+defmodule User do
+  use Atlas.Model
+  field :email, :string
+  field :name,  :string
+
+  def email(user), do: user.email |> String.upcase
+end
+
+iex> user = User.new(email: "chris@example.com")
+iex> User.email(user)
+CHRIS@EXAMPLE.COM
+```
+
+
 ### Auto-generated finders
 
 `with_[field name]` functions are automatically generated for all defined fields.
