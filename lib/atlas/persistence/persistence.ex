@@ -90,7 +90,7 @@ defmodule Atlas.Persistence do
         iex> Repo.create(User, [age: 12], as: User)
         {:ok, User.Record[age: 12...]}
 
-        iex> Repo.create(User, User.Recod.new(age: 18), as: [User, Employee])
+        iex> Repo.create(User, User.Record.new(age: 18), as: [User, Employee])
         {:ok, User.Record[age: 18...]}
 
         iex> Repo.create(User, [age: 0], as: User)
