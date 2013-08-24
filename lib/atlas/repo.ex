@@ -2,6 +2,7 @@ defmodule Atlas.Repo do
   alias Atlas.Database
   alias Atlas.Database.Client
   alias Atlas.Query.Query
+  alias Atlas.AdapterError
 
   defmacro __using__(options) do
     quote do
@@ -28,7 +29,6 @@ defmodule Atlas.Repo do
         binary_to_atom  "repo_server_#{String.downcase(to_binary(__MODULE__))}"
       end
 
-
       @doc """
       Finds the model record when given previous query scope or base Model and value of primary key
 
@@ -45,6 +45,7 @@ defmodule Atlas.Repo do
         User.Record[id: 1..., is_site_admin: true]
         iex> Repo.find(User.admins, 0)
         nil
+
       """
       def find(query = Query[], primary_key_value) do
         query |> query.model.where([{query.model.primary_key, primary_key_value}]) |> first
@@ -64,16 +65,21 @@ defmodule Atlas.Repo do
         123
         iex> Repo.count User.where(admin: true)
         8
+
       """
       def count(query = Query[]) do
         query = query.update(count: true, order_by: nil, order_by_direction: nil)
         {sql, args} = query |> to_prepared_sql(query.model)
-        {:ok, results} = Client.execute_prepared_query(sql, args, __MODULE__)
 
-        results
-        |> Enum.first
-        |> Keyword.get(:count)
-        |> binary_to_integer
+        case Client.execute_prepared_query(sql, args, __MODULE__) do
+          {:ok, results} ->
+            results
+            |> Enum.first
+            |> Keyword.get(:count)
+            |> binary_to_integer
+
+          {:error, reason} -> raise AdapterError.new(message: inspect(reason))
+        end
       end
       def count(model), do: count(to_query(model))
 
@@ -87,6 +93,7 @@ defmodule Atlas.Repo do
         [User.Record[id: 1...], User.Record[id: 2...]]...
         iex> Repo.all User.where(admin: true)
         [User.Record[id: 10, admin: true...], User.Record[id: 22, admin: true...]]
+
       """
       def all(query = Query[]) do
         query
@@ -103,10 +110,13 @@ defmodule Atlas.Repo do
 
         iex> Repo.find_by_sql({"SELECT * FROM users where id = ?", [1]} User)
         [User.Repo[id: 1...]]
+
       """
       def find_by_sql({sql, bound_args}, model) do
-        {:ok, results} = Client.execute_prepared_query(sql, bound_args, __MODULE__)
-        results |> model.raw_query_results_to_records
+        case Client.execute_prepared_query(sql, bound_args, __MODULE__) do
+          {:ok, results}   -> results |> model.raw_query_results_to_records
+          {:error, reason} -> raise AdapterError.new(message: inspect(reason))
+        end
       end
 
       @doc """
@@ -121,6 +131,7 @@ defmodule Atlas.Repo do
         User.Repo[id: 1...]
         iex> Repo.first User.where(email: "foo@bar.com")
         User.Repo[id: 1..., email: "foo@bar.com"]
+
       """
       def first(query = Query[]) do
         query.limit(1) |> all |> Enum.first
@@ -139,6 +150,7 @@ defmodule Atlas.Repo do
         User.Repo[id: 1...]
         iex> Repo.last User.where(email: "foo@bar.com").order(id: :desc)
         User.Repo[id: 1..., email: "foo@bar.com"]
+
       """
       def last(query = Query[]) do
         query.update(limit: 1) |> swap_order_direction |> all |> Enum.first
