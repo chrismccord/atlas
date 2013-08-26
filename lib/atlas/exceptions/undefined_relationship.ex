@@ -1,5 +1,5 @@
-defexception Atlas.Exceptions.AdapterError,
-             message: "Error when performing query",
+defexception Atlas.Exceptions.UndefinedRelationship,
+             message: "Undefined model relationship",
              can_retry: false do
 
   def full_message(me) do

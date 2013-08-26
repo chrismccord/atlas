@@ -17,67 +17,67 @@ defmodule Atlas.PersistenceTest do
   end
 
   test "persisted? returns true if record has primary key" do
-    assert Repo.persisted?(Model.Record.new(id: 1), Model)
+    assert Repo.persisted?(User.Record.new(id: 1), User)
   end
   test "persisted? returns false if record has no primary key" do
-    refute Repo.persisted?(Model.Record.new(id: nil), Model)
+    refute Repo.persisted?(User.Record.new(id: nil), User)
   end
 
   test "#update updates the records attributes to the database with valid model" do
-    record = Repo.first(Model.where(name: "older"))
+    record = Repo.first(User.where(name: "older"))
     assert record.age == 6
-    {:ok, _} = Model.validate(record)
-    {:ok, record} = Repo.update(record, [age: 18], as: Model)
+    {:ok, _} = User.validate(record)
+    {:ok, record} = Repo.update(record, [age: 18], as: User)
     assert record.age == 18
-    assert Repo.first(Model.where(name: "older")).age == 18
+    assert Repo.first(User.where(name: "older")).age == 18
   end
   test "#update does not update database and returns error list when invalid" do
-    record = Repo.first(Model.where(name: "older"))
+    record = Repo.first(User.where(name: "older"))
 
-    {:ok, _} = Model.validate(record)
-    {:error, record_with_failed_attrs, errors} = Repo.update(record, [age: 0], as: Model)
-    {:error, _, _} = Model.validate(record_with_failed_attrs)
+    {:ok, _} = User.validate(record)
+    {:error, record_with_failed_attrs, errors} = Repo.update(record, [age: 0], as: User)
+    {:error, _, _} = User.validate(record_with_failed_attrs)
     assert record_with_failed_attrs.age == 0
     assert :age in Keyword.keys(errors)
-    assert Repo.first(Model.where(name: "older")).age == 6
+    assert Repo.first(User.where(name: "older")).age == 6
   end
   test "#update with additional behavior applies extra validations" do
-    {:ok, record} = Repo.create(Model, [name: "Future Manager", age: 18], as: Model)
-    {:error, record, _reasons} = Repo.update(record, [age: 11], as: [Model, Manager])
+    {:ok, record} = Repo.create(User, [name: "Future Manager", age: 18], as: User)
+    {:error, record, _reasons} = Repo.update(record, [age: 11], as: [User, Manager])
     assert record.age == 11
-    assert Repo.first(Model.where(name: "Future Manager")).age == 18
+    assert Repo.first(User.where(name: "Future Manager")).age == 18
   end
 
   test "#create with keyword list inserts record attributes into the database" do
-    refute Repo.first(Model.where(name: "José"))
-    {:ok, _user} = Repo.create(Model, [name: "José", age: 30], as: Model)
-    assert Repo.first(Model.where(name: "José"))
+    refute Repo.first(User.where(name: "José"))
+    {:ok, _user} = Repo.create(User, [name: "José", age: 30], as: User)
+    assert Repo.first(User.where(name: "José"))
   end
   test "#create with record inserts record attributes into the database" do
-    refute Repo.first(Model.where(name: "Joe"))
-    {:ok, _user} = Repo.create(Model, Model.Record.new(name: "Joe", age: 30), as: Model)
-    assert Repo.first(Model.where(name: "Joe"))
+    refute Repo.first(User.where(name: "Joe"))
+    {:ok, _user} = Repo.create(User, User.Record.new(name: "Joe", age: 30), as: User)
+    assert Repo.first(User.where(name: "Joe"))
   end
 
   test "#destroy deletes the record from the database" do
-    {:ok, user} = Repo.create(Model, [name: "Bob", age: 30], as: Model)
-    assert Repo.first(Model.where(name: "Bob"))
-    {:ok, _} = Repo.destroy(user, as: Model)
-    refute Repo.first(Model.where(name: "Bob"))
+    {:ok, user} = Repo.create(User, [name: "Bob", age: 30], as: User)
+    assert Repo.first(User.where(name: "Bob"))
+    {:ok, _} = Repo.destroy(user, as: User)
+    refute Repo.first(User.where(name: "Bob"))
   end
   test "#destroy sets the record primary key to nil" do
-    {:ok, user} = Repo.create(Model, [name: "Bob", age: 30], as: Model)
+    {:ok, user} = Repo.create(User, [name: "Bob", age: 30], as: User)
     assert user.id != nil
-    {:ok, user} = Repo.destroy(user, as: Model)
+    {:ok, user} = Repo.destroy(user, as: User)
     assert user.id == nil
-    refute Repo.persisted?(user, Model)
+    refute Repo.persisted?(user, User)
   end
 
   test "#destroy_all with relation deletes all matching records from database" do
     Enum.each 1..10, fn i ->
-      {:ok, _} = Repo.create(Model, [name: "Bob#{i}", age: i + 100], as: Model)
+      {:ok, _} = Repo.create(User, [name: "Bob#{i}", age: i + 100], as: User)
     end
-    scope = Model.where("age > ?", 100)
+    scope = User.where("age > ?", 100)
     count_before_destroy = scope |> Repo.count
     assert Repo.destroy_all(scope)
     count_after_destroy = scope |> Repo.count
@@ -88,13 +88,13 @@ defmodule Atlas.PersistenceTest do
 
   test "#destroy_all with list of records deletes all records from database" do
     Enum.each 1..10, fn i ->
-      {:ok, _user} = Repo.create(Model, [name: "Bob#{i}", age: i + 100], as: Model)
+      {:ok, _user} = Repo.create(User, [name: "Bob#{i}", age: i + 100], as: User)
     end
-    scope = Model.where("age > ?", 100)
+    scope = User.where("age > ?", 100)
     records = Repo.all(scope)
     count_before_destroy = scope |> Repo.count
 
-    assert Repo.destroy_all(records, Model)
+    assert Repo.destroy_all(records, User)
     count_after_destroy = scope |> Repo.count
     assert count_before_destroy != count_after_destroy
     assert (count_before_destroy - count_after_destroy) == 10

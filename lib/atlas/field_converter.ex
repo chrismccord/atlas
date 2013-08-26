@@ -34,4 +34,7 @@ defmodule Atlas.FieldConverter do
   def value_to_field_type(value, :datetime) when is_binary(value), do: value
   def value_to_field_type(nil,   :datetime), do: nil
   def value_to_field_type(value, :datetime), do: value
+
+  # handle undefined field type
+  def value_to_field_type(value, nil), do: value
 end

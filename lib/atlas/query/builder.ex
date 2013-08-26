@@ -1,5 +1,6 @@
 defmodule Atlas.Query.Builder do
   alias Atlas.Query.Query
+  alias Atlas.Exceptions.UndefinedRelationship
 
   @doc """
   Converts list into comma delimited binding placeholders for query.
@@ -53,14 +54,6 @@ defmodule Atlas.Query.Builder do
         where(query, query_string, [])
       end
 
-      # def first do
-      #   new_base_query
-      # end
-
-      # def last do
-      #   new_base_query
-      # end
-
       def order(options) do
         order new_base_query, options
       end
@@ -93,7 +86,43 @@ defmodule Atlas.Query.Builder do
         query.select(to_binary(column))
       end
 
-      # def count, do: count(new_base_query)
+      @doc """
+      Create join query expression with either a string of sql or a model to create a
+      join expression based on model relationships.
+
+      ## Examples
+
+        iex> User.joins(:comments)
+        Atlas.Query.Query[... joins: [{User,Atlas.Relationships.HasMany[name: :orders, model: Order,
+        foreign_key: :user_id]}]
+
+        iex> User.joins(Comment)
+        Atlas.Query.Query[... joins: [{User,Atlas.Relationships.HasMany[name: :orders, model: Order,
+        foreign_key: :user_id]}]
+
+        iex> User.joins("INNER JOIN orders ON orders.user_id = users.id")
+        Atlas.Query.Query[joins: ["INNER JOIN orders ON orders.user_id = users.id"]...]
+
+      """
+      def joins(sql) when is_binary(sql) do
+        joins new_base_query, sql
+      end
+      def joins(relation) do
+        joins new_base_query, relation
+      end
+      def joins(query, sql) when is_binary(sql) do
+        query.joins(query.joins ++ [sql])
+      end
+      def joins(query, identifier) do
+        relation = query.model.find_relationship(identifier)
+        unless relation do
+          raise UndefinedRelationship.new message: """
+          No relationship between `#{query.model}` and `#{identifier}` has been defined
+          """
+        end
+
+        query.joins(query.joins ++ [{query.model, relation}])
+      end
     end
   end
 end

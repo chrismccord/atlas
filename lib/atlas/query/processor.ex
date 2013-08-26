@@ -1,5 +1,7 @@
 defmodule Atlas.Query.Processor do
   alias Atlas.Query.Query
+  alias Atlas.Relationships.HasMany
+  alias Atlas.Relationships.BelongsTo
   import Atlas.FieldConverter
 
   defmacro __using__(options) do
@@ -45,6 +47,28 @@ defmodule Atlas.Query.Processor do
       def offset_to_sql(Query[offset: nil]), do: nil
       def offset_to_sql(query), do: "OFFSET #{query.offset}"
 
+      def joins_to_sql(Query[joins: []]), do: nil
+      def joins_to_sql(Query[joins: joins]) do
+        Enum.map_join joins, "\n", &join_to_sql(&1)
+      end
+      def join_to_sql(sql) when is_binary(sql), do: sql
+      def join_to_sql({from_model, BelongsTo[model: to_model, foreign_key: foreign_key]}) do
+        foreign_key = adapter.quote_column(foreign_key)
+        to_table    = adapter.quote_tablename(to_model.table)
+        from_table  = adapter.quote_tablename(from_model.table)
+        primary_key = adapter.quote_column(to_model.primary_key)
+
+
+        "INNER JOIN #{to_table} ON #{to_table}.#{primary_key} = #{from_table}.#{foreign_key}"
+      end
+      def join_to_sql({from_model, HasMany[model: to_model, foreign_key: foreign_key]}) do
+        from        = adapter.quote_tablename(from_model.table)
+        foreign_key = adapter.quote_column(foreign_key)
+        to          = adapter.quote_tablename(to_model.table)
+
+        "INNER JOIN #{to} ON #{to}.#{foreign_key} = #{from}.#{from_model.primary_key}"
+      end
+
       def bound_arguments(query) do
         query.wheres
         |> Enum.map(fn {_query, values} -> values end)
@@ -81,11 +105,13 @@ defmodule Atlas.Query.Processor do
         query      = normalize_query_for_sql(query, model)
         select     = select_to_sql(query, model)
         from       = adapter.quote_tablename(model.table)
+        joins      = joins_to_sql(query)
         wheres     = wheres_to_sql(query, model)
         bound_args = bound_arguments(query)
 
         prepared_sql = """
         SELECT #{select} FROM #{from}
+        #{joins}
         #{wheres}
         #{order_by_to_sql(query)}
         #{limit_to_sql(query)}

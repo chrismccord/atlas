@@ -22,7 +22,7 @@ defmodule Atlas.PersistenceTestHelper do
         {:ok, _} = Client.raw_query "DROP TABLE IF EXISTS models", Repo
       end
 
-      defmodule Model do
+      defmodule User do
         use Atlas.Model
         @table :models
         @primary_key :id
@@ -33,6 +33,23 @@ defmodule Atlas.PersistenceTestHelper do
         field :active, :boolean
         field :age, :integer
         validates_numericality_of :age, greater_than: 0, less_than: 150
+
+        has_many :posts, foreign_key: :user_id, model: Post
+      end
+
+      defmodule Post do
+        use Atlas.Model
+        @table :posts
+        @primary_key :id
+
+        field :id, :integer
+        field :name, :string
+        field :state, :string
+        field :active, :boolean
+        field :age, :integer
+        validates_numericality_of :age, greater_than: 0, less_than: 150
+
+        belongs_to :user, foreign_key: :user_id, model: User
       end
 
       def create_user(attributes) do

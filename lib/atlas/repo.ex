@@ -2,7 +2,7 @@ defmodule Atlas.Repo do
   alias Atlas.Database
   alias Atlas.Database.Client
   alias Atlas.Query.Query
-  alias Atlas.AdapterError
+  alias Atlas.Exceptions.AdapterError
 
   defmacro __using__(options) do
     quote do
