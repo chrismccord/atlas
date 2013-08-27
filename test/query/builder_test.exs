@@ -127,12 +127,12 @@ defmodule Atlas.Query.BuilderTest do
 
   test "#join with relationship name converts relation to sql" do
     assert User.joins(:posts) |> Repo.joins_to_sql ==
-      "INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"models\".id"
+      "INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"users\".id"
   end
 
   test "#join with raw sql expression returns sql expression" do
-    assert User.joins("INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"models\".user_id") |> Repo.joins_to_sql ==
-      "INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"models\".user_id"
+    assert User.joins("INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"users\".user_id") |> Repo.joins_to_sql ==
+      "INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"users\".user_id"
   end
 
   test "#join with multiple joins expressions returns array of processed join expressions as sql" do
@@ -140,7 +140,7 @@ defmodule Atlas.Query.BuilderTest do
 
 
     assert Repo.joins_to_sql(query) == Enum.join([
-      "INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"models\".id",
+      "INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"users\".id",
       "INNER JOINS foo ON foo.id = bar.foo_id"
     ], "\n")
   end

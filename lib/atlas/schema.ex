@@ -54,7 +54,7 @@ defmodule Atlas.Schema do
       def __atlas__(:fields), do: @fields
 
       def table, do: @table
-      def table, do: @table
+
       def primary_key, do: @primary_key
 
       def primary_key_value(record), do: Atlas.Record.get(record, @primary_key)
