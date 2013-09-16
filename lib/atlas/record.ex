@@ -1,6 +1,6 @@
 defmodule Atlas.Record do
 
-  @reserved_fields [:model]
+  @reserved_fields [:model, :__preloaded__]
 
   @doc """
   Returns the attribute of the record given the key

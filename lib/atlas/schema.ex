@@ -31,6 +31,7 @@ defmodule Atlas.Schema do
 
   defmacro __using__(_options) do
     quote do
+      use Atlas.Relationships
       Module.register_attribute __MODULE__, :fields, accumulate: true,
                                                      persist: false
       import unquote(__MODULE__)
@@ -48,7 +49,8 @@ defmodule Atlas.Schema do
     quote do
       @primary_key (@primary_key || @default_primary_key)
 
-      defrecord Record, record_fields(@fields, __MODULE__)
+      defrecord Preloaded, preloaded_fields(__MODULE__, @belongs_to, @has_many)
+      defrecord Record, record_fields(@fields, __MODULE__, Preloaded.new)
 
       def __atlas__(:table), do: @table
       def __atlas__(:fields), do: @fields
@@ -87,11 +89,37 @@ defmodule Atlas.Schema do
           field_type_for_name(attribute)
         )
       end
+
+      @doc """
+      Return the preloaded association results for the given record
+
+      record - The __MODULE__.Record
+      association_name - The atom of the association name
+
+      Examples
+
+        iex> user = Repo.first User.preloads(:orders) |> User.where(id: 5)
+        [User.Record[id: 5, __preloaded__: User.Preloaded[orders: [Order.Record[id: 123..]
+        iex> User.preloaded(user, :orders)
+        [Order.Record[id: 123...]]
+
+      """
+      def preloaded(record, association_name) do
+        Atlas.Record.get(record.__preloaded__, association_name)
+      end
     end
   end
 
-  def record_fields(fields, model) do
-    fields_to_kwlist(fields) ++ [model: model]
+  def record_fields(fields, model, preload_record) do
+    fields_to_kwlist(fields) ++ [model: model, __preloaded__: preload_record]
+  end
+
+  @doc """
+  Return all defined preloaded fields for has_many and belongs_to relationships
+  """
+  def preloaded_fields(_model, belongs_to, has_many) do
+    Enum.map(belongs_to, fn rel -> {rel.name, nil} end)
+    |> Kernel.++(Enum.map(has_many, fn rel -> {rel.name, []} end))
   end
 
   @doc """

@@ -3,6 +3,8 @@ defmodule Atlas.Repo do
   alias Atlas.Database.Client
   alias Atlas.Query.Query
   alias Atlas.Exceptions.AdapterError
+  alias Atlas.Relationships.HasMany
+  alias Atlas.Relationships.BelongsTo
 
   defmacro __using__(options) do
     quote do
@@ -98,7 +100,7 @@ defmodule Atlas.Repo do
       def all(query = Query[]) do
         query
         |> to_prepared_sql(query.model)
-        |> find_by_sql(query.model)
+        |> find_by_sql(query.model, query.includes)
       end
       def all(model), do: all(to_query(model))
 
@@ -112,10 +114,41 @@ defmodule Atlas.Repo do
         [User.Repo[id: 1...]]
 
       """
-      def find_by_sql({sql, bound_args}, model) do
+      def find_by_sql({sql, bound_args}, model, []) do
         case Client.execute_prepared_query(sql, bound_args, __MODULE__) do
           {:ok, results}   -> results |> model.raw_query_results_to_records
           {:error, reason} -> raise AdapterError.new(message: inspect(reason))
+        end
+      end
+      def find_by_sql({sql, bound_args}, model, includes) when is_list(includes) do
+        find_by_sql({sql, bound_args}, model, [])
+        |> records_with_preloaded_includes(model, includes)
+      end
+
+      defp records_with_preloaded_includes(records, model, includes) do
+        record_ids = Enum.map records, &model.primary_key_value(&1)
+
+        Enum.reduce includes, records, fn {_from_model, relation}, records ->
+          preloaded_records = all(relation.model.where([{relation.foreign_key, record_ids}]))
+
+          records
+          |> Enum.map(&apply_preloads_to_record(&1, preloaded_records, model, relation))
+        end
+      end
+
+      defp apply_preloads_to_record(record, preloaded_records, model, relation) do
+        record_preloads = Enum.filter_map(preloaded_records, fn inc_rec ->
+          apply(relation.model, relation.foreign_key, [inc_rec]) == model.primary_key_value(record)
+        end, fn inc_rec ->
+          relation_name_for_model = relation.model.find_relationship(model).name
+          inc_rec.__preloaded__(apply(inc_rec.__preloaded__, relation_name_for_model, [record]))
+        end)
+
+        if Enum.any? record_preloads do
+          preloaded_association = apply(record.__preloaded__, relation.name, [record_preloads])
+          record.update(__preloaded__: preloaded_association)
+        else
+          record
         end
       end
 

@@ -37,5 +37,17 @@ defmodule Atlas.RelationshipsTest do
     assert User.posts(bob) |> Repo.first |> Post.message == "this is a post by bob"
     assert User.posts(ted) |> Repo.first == nil
   end
+
+  test "belongs_to defaults the preloaded record fields" do
+    user = Repo.first User
+    post = Repo.first Post
+
+    assert User.preloaded(user, :posts) == []
+    assert Post.preloaded(post, :user) == nil
+  end
+
+  test "has_many sets up preloaded record fields" do
+
+  end
 end
 

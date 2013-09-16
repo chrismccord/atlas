@@ -6,7 +6,7 @@ defmodule Atlas.SchemaTest do
   alias Atlas.Schema
 
   defmodule User do
-    use Atlas.Schema
+    use Atlas.Model
 
     field :id, :integer
     field :age, :integer, default: 18

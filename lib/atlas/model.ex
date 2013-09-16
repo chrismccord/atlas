@@ -7,7 +7,6 @@ defmodule Atlas.Model do
       use Atlas.Validator
       use Atlas.Finders
       use Atlas.Accessors
-      use Atlas.Relationships
     end
   end
 end

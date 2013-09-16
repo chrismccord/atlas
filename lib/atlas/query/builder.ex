@@ -1,6 +1,8 @@
 defmodule Atlas.Query.Builder do
   alias Atlas.Query.Query
   alias Atlas.Exceptions.UndefinedRelationship
+  alias Atlas.Relationships.HasMany
+  alias Atlas.Relationships.BelongsTo
 
   @doc """
   Converts list into comma delimited binding placeholders for query.
@@ -122,6 +124,21 @@ defmodule Atlas.Query.Builder do
         end
 
         query.joins(query.joins ++ [{query.model, relation}])
+      end
+
+      def includes(identifier) do
+        includes new_base_query, identifier
+      end
+
+      def includes(query, identifier) do
+        relation = query.model.find_relationship(identifier)
+        unless relation do
+          raise UndefinedRelationship.new message: """
+          No relationship between `#{query.model}` and `#{identifier}` has been defined
+          """
+        end
+
+        query.includes(query.includes ++ [{query.model, relation}])
       end
     end
   end

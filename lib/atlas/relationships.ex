@@ -16,8 +16,8 @@ defmodule Atlas.Relationships do
 
   defmacro __before_compile__(_env) do
     quote do
-      def __atlas__(:belongs_to), do: @belongs_to
-      def __atlas__(:has_many), do: @has_many
+      def __atlas__(:belongs_to), do: @belongs_to || []
+      def __atlas__(:has_many), do: @has_many || []
 
       def find_relationship(identifier) do
         find_belongs_to(identifier) || find_has_many(identifier)
@@ -25,13 +25,13 @@ defmodule Atlas.Relationships do
 
       def find_belongs_to(identifier) do
         Enum.find @belongs_to, fn relation ->
-          relation.name == identifier || relation.identifier == identifier
+          relation.name == identifier || relation.model == identifier
         end
       end
 
       def find_has_many(identifier) do
         Enum.find @has_many, fn relation ->
-          relation.name == identifier || relation.identifier == identifier
+          relation.name == identifier || relation.model == identifier
         end
       end
 
@@ -44,7 +44,6 @@ defmodule Atlas.Relationships do
           quote do
             pkey = apply(unquote(model), :primary_key, [])
             fkey_value = Record.get(record, unquote(fkey))
-
             apply(unquote(model), :where, [[{pkey, fkey_value}]])
           end
         end
