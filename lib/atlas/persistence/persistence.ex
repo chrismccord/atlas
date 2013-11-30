@@ -213,7 +213,7 @@ defmodule Atlas.Persistence do
       end
 
       defp to_prepared_delete_sql(query = Query[], model) do
-        ids = query |> all |> Enum.map(model.primary_key_value(&1))
+        ids = query |> all |> Enum.map(&model.primary_key_value(&1))
 
         prepared_sql = """
         DELETE FROM #{adapter.quote_tablename(model.table)}

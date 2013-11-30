@@ -15,7 +15,7 @@ defmodule Atlas.Relationships do
   end
 
   defmacro __before_compile__(_env) do
-    quote do
+    quote unquote: false do
       def __atlas__(:belongs_to), do: @belongs_to || []
       def __atlas__(:has_many), do: @has_many || []
 
@@ -40,7 +40,7 @@ defmodule Atlas.Relationships do
         Return query expression for `belongs_to :#{name}` relationship to find
         #{model} by #{__MODULE__}'s primary key
         """
-        def name, quote(do: [record]), [] do
+        def unquote(name)(record) do
           quote do
             pkey = apply(unquote(model), :primary_key, [])
             fkey_value = Record.get(record, unquote(fkey))
@@ -54,7 +54,7 @@ defmodule Atlas.Relationships do
         Return query expression for `has_many :#{name}` relationship to find all
         #{model}'s by #{__MODULE__}'s' primary key
         """
-        def name, quote(do: [record]), [] do
+        def unquote(name)(record) do
           quote do
             apply(unquote(model), :where, [[{unquote(fkey), primary_key_value(record)}]])
           end

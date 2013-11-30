@@ -36,7 +36,7 @@ defmodule Atlas.Query.Processor do
         Query[order_by: order_by, order_by_direction: direction] = query
         if order_by do
           """
-          ORDER BY #{order_by}#{if direction, do: " #{String.upcase to_binary(direction)}"}
+          ORDER BY #{order_by}#{if direction, do: " #{String.upcase to_string(direction)}"}
           """
         end
       end
@@ -136,7 +136,7 @@ defmodule Atlas.Query.Processor do
         {query_strings, values} = equalities
         |> Enum.with_index
         |> Enum.reverse
-        |> Enum.map(equality_to_bound_query(&1, model))
+        |> Enum.map(&equality_to_bound_query(&1, model))
         |> Enum.reduce({[], []}, fn {query_string, value}, {query_acc, values} ->
           {[query_string | query_acc], [value | values]}
         end)

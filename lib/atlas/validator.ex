@@ -246,7 +246,7 @@ defmodule Atlas.Validator do
       end
 
       defp process_validation_form(record, {:format_of, attribute, options}) do
-        value   = to_binary(Record.get(record, attribute))
+        value   = to_string(Record.get(record, attribute))
         regexp  = Keyword.get options, :with
         message = Keyword.get options, :message, "_ is not valid"
 
@@ -254,8 +254,8 @@ defmodule Atlas.Validator do
       end
 
       defp process_validation_form(record, {:inclusion_of, attribute, options}) do
-        value   = to_binary(Record.get(record, attribute))
-        in_list = Keyword.get(options, :in, []) |> Enum.map to_binary(&1)
+        value   = to_string(Record.get(record, attribute))
+        in_list = Keyword.get(options, :in, []) |> Enum.map &to_string(&1)
         message = Keyword.get options, :message, "_ must be one of #{Enum.join in_list, ", "}"
 
         unless Enum.member?(in_list, value), do: {attribute, message}

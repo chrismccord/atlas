@@ -24,10 +24,10 @@ defmodule Atlas.Finders do
   end
 
   defmacro __before_compile__(_env) do
-    quote do
+    quote unquote: false do
       Enum.each @fields, fn field ->
         field_name = elem(field, 0)
-        def binary_to_atom("with_#{field_name}"), quote(do: [value]), [] do
+        def binary_to_atom("with_#{unquote(field_name)}")(value) do
           quote do
             where([{unquote(field_name), value}])
           end

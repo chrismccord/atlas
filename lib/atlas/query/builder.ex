@@ -85,7 +85,7 @@ defmodule Atlas.Query.Builder do
 
       def select(column), do: select(new_base_query, column)
       def select(query, column) do
-        query.select(to_binary(column))
+        query.select(to_string(column))
       end
 
       @doc """

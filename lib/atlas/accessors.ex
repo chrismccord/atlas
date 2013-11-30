@@ -50,7 +50,7 @@ defmodule Atlas.Accessors do
   end
 
   defmacro __before_compile__(_env) do
-    quote do
+    quote unquote: false do
 
       @doc """
       Instatiate a __MODULE__.Record, passing attributes through all default and custom setters
@@ -108,7 +108,7 @@ defmodule Atlas.Accessors do
       Enum.each @fields, fn {name, _, _, _} ->
         unless Module.defines?(__MODULE__, {name, 1}) do
           @doc "Default getter for #{name}. Returns `record.#{name}`"
-          def name, quote(do: [record]), [] do
+          def unquote(name)(record) do
             quote do
               Atlas.Record.get(record, unquote(name))
             end
