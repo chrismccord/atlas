@@ -12,7 +12,7 @@ defmodule Atlas.FieldConverter do
   """
   def value_to_field_type(value, :string) when is_binary(value), do: value
   def value_to_field_type(nil,   :string), do: nil
-  def value_to_field_type(value, :string), do: to_binary(value)
+  def value_to_field_type(value, :string), do: to_string(value)
 
   def value_to_field_type(value, :integer) when is_integer(value), do: value
   def value_to_field_type(nil,   :integer), do: nil
@@ -22,14 +22,14 @@ defmodule Atlas.FieldConverter do
   def value_to_field_type(value, :float) when is_integer(value), do: value + 0.0
   def value_to_field_type(nil,   :float), do: nil
   def value_to_field_type(value, :float) do
-    case String.to_float(to_binary(value)) do
+    case String.to_float(to_string(value)) do
       {value, _} -> value
       :error     -> nil
     end
   end
 
   def value_to_field_type(value, :boolean) when is_boolean(value), do: value
-  def value_to_field_type(value, :boolean), do: binary_to_atom(to_binary(value)) == true
+  def value_to_field_type(value, :boolean), do: binary_to_atom(to_string(value)) == true
 
   def value_to_field_type(value, :datetime) when is_binary(value), do: value
   def value_to_field_type(nil,   :datetime), do: nil

@@ -1,11 +1,11 @@
 defmodule Atlas.Database.FieldNormalizer do
 
   def normalize_values(values) do
-    Enum.map values, normalize_value(&1)
+    Enum.map values, &normalize_value(&1)
   end
 
   def denormalize_values(values) do
-    Enum.map values, denormalize_value(&1)
+    Enum.map values, &denormalize_value(&1)
   end
 
   def normalize_value(values) when is_list(values), do: normalize_values(values)
@@ -13,7 +13,7 @@ defmodule Atlas.Database.FieldNormalizer do
   def normalize_value("t"), do: true
   def normalize_value("f"), do: false
   def normalize_value(timestamp = {{_, _, _}, {_, _, _}}), do: timestamp
-  def normalize_value(value), do: to_binary(value)
+  def normalize_value(value), do: to_string(value)
 
   def denormalize_value(values) when is_list(values), do: denormalize_values(values)
   def denormalize_value(nil), do: :null
