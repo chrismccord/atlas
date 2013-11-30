@@ -5,3 +5,4 @@ erl_crash.dump
 *.ez
 /lib/atlas/repos/dev_repo.ex
 /log/*.log
+/_build
