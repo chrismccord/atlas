@@ -254,3 +254,47 @@ end
 
 Repo.start_link
 ```
+
+## Testing
+
+Testing requires a `lib/atlas/repos/dev_repo.ex` to exist. Here's an example:
+
+```elixir
+defmodule Repo do
+  use Atlas.Repo, adapter: Atlas.Adapters.Postgres
+
+  def config(:dev) do
+    [
+      database: "",
+      username: "",
+      password: "",
+      host: "localhost",
+      pool: 5,
+      log_level: :debug
+    ]
+  end
+
+  def config(:test) do
+    [
+      database: "atlas_test",
+      username: "chris",
+      password: "",
+      host: "localhost",
+      pool: 5,
+      log_level: :debug
+    ]
+  end
+
+  def config(:prod) do
+    [
+      database: "",
+      username: "",
+      password: "",
+      host: "",
+      pool: 5,
+      log_level: :warn
+    ]
+  end
+end
+```
+
