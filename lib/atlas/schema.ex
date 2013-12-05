@@ -49,7 +49,8 @@ defmodule Atlas.Schema do
     quote do
       @primary_key (@primary_key || @default_primary_key)
 
-      defrecord Record, record_fields(@fields, __MODULE__, @belongs_to, @has_many)
+      defrecord Preloaded, preloaded_fields(__MODULE__, @belongs_to, @has_many)
+      defrecord Record, record_fields(@fields, __MODULE__, __MODULE__.Preloaded.new)
 
       def __atlas__(:table), do: @table
       def __atlas__(:fields), do: @fields
@@ -109,17 +110,14 @@ defmodule Atlas.Schema do
     end
   end
 
-  def record_fields(fields, model, belongs_to, has_many) do
-    fields_to_kwlist(fields) ++ [
-      model: model, 
-      __preloaded__: preloaded_fields(belongs_to, has_many)
-    ]
+  def record_fields(fields, model, preload_record) do
+    fields_to_kwlist(fields) ++ [model: model, __preloaded__: preload_record]
   end
 
   @doc """
   Return all defined preloaded fields for has_many and belongs_to relationships
   """
-  def preloaded_fields(belongs_to, has_many) do
+  def preloaded_fields(_model, belongs_to, has_many) do
     Enum.map(belongs_to, fn rel -> {rel.name, nil} end)
     |> Kernel.++(Enum.map(has_many, fn rel -> {rel.name, []} end))
   end
