@@ -49,8 +49,7 @@ defmodule Atlas.Schema do
     quote do
       @primary_key (@primary_key || @default_primary_key)
 
-      defrecord Preloaded, preloaded_fields(__MODULE__, @belongs_to, @has_many)
-      defrecord Record, record_fields(@fields, __MODULE__, Preloaded.new)
+      defrecord Record, record_fields(@fields, __MODULE__, @belongs_to, @has_many)
 
       def __atlas__(:table), do: @table
       def __atlas__(:fields), do: @fields
@@ -66,7 +65,7 @@ defmodule Atlas.Schema do
       def raw_query_results_to_records(results) do
         results
         |> Enum.map(fn row -> raw_kwlist_to_field_types(row) end)
-        |> Enum.map(fn row -> Record.new(row) end)
+        |> Enum.map(fn row -> __MODULE__.Record.new(row) end)
       end
 
       def raw_kwlist_to_field_types(kwlist) do
@@ -110,14 +109,17 @@ defmodule Atlas.Schema do
     end
   end
 
-  def record_fields(fields, model, preload_record) do
-    fields_to_kwlist(fields) ++ [model: model, __preloaded__: preload_record]
+  def record_fields(fields, model, belongs_to, has_many) do
+    fields_to_kwlist(fields) ++ [
+      model: model, 
+      __preloaded__: preloaded_fields(belongs_to, has_many)
+    ]
   end
 
   @doc """
   Return all defined preloaded fields for has_many and belongs_to relationships
   """
-  def preloaded_fields(_model, belongs_to, has_many) do
+  def preloaded_fields(belongs_to, has_many) do
     Enum.map(belongs_to, fn rel -> {rel.name, nil} end)
     |> Kernel.++(Enum.map(has_many, fn rel -> {rel.name, []} end))
   end

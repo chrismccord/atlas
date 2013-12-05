@@ -28,7 +28,7 @@ defmodule Atlas.Repo do
       The unique identifier of the repo's genserver adapter process
       """
       def server_name do
-        binary_to_atom  "repo_server_#{String.downcase(to_string(__MODULE__))}"
+        binary_to_atom  "repo_server_#{String.downcase(to_string(unquote(__MODULE__)))}"
       end
 
       @doc """
@@ -78,7 +78,8 @@ defmodule Atlas.Repo do
             results
             |> Enum.first
             |> Keyword.get(:count)
-            |> binary_to_integer
+            |> Integer.parse
+            |> elem(0)
 
           {:error, reason} -> raise AdapterError.new(message: inspect(reason))
         end

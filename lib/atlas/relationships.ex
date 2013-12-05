@@ -41,11 +41,9 @@ defmodule Atlas.Relationships do
         #{model} by #{__MODULE__}'s primary key
         """
         def unquote(name)(record) do
-          quote do
-            pkey = apply(unquote(model), :primary_key, [])
-            fkey_value = Record.get(record, unquote(fkey))
-            apply(unquote(model), :where, [[{pkey, fkey_value}]])
-          end
+          pkey = apply(unquote(model), :primary_key, [])
+          fkey_value = Record.get(record, unquote(fkey))
+          apply(unquote(model), :where, [[{pkey, fkey_value}]])
         end
       end
 
@@ -55,9 +53,7 @@ defmodule Atlas.Relationships do
         #{model}'s by #{__MODULE__}'s' primary key
         """
         def unquote(name)(record) do
-          quote do
-            apply(unquote(model), :where, [[{unquote(fkey), primary_key_value(record)}]])
-          end
+          apply(unquote(model), :where, [[{unquote(fkey), primary_key_value(record)}]])
         end
       end
     end

@@ -1,6 +1,10 @@
 defmodule Atlas.Validator do
   import Atlas.FieldConverter
 
+  alias Atlas.Present
+  alias Atlas.Count
+  alias Atlas.Record
+
   @moduledoc """
   Provides Model validations including validation rule definitions and error messages.
 
@@ -96,9 +100,6 @@ defmodule Atlas.Validator do
       Module.register_attribute __MODULE__, :validations, accumulate: true,
                                                           persist: false
       import unquote(__MODULE__)
-      alias Atlas.Present
-      alias Atlas.Count
-      alias Atlas.Record
       @before_compile unquote(__MODULE__)
     end
   end
@@ -179,7 +180,7 @@ defmodule Atlas.Validator do
       """
       def errors(record) do
         @validations
-        |> Enum.map(process_validation_form(record, &1))
+        |> Enum.map(&process_validation_form(record, &1))
         |> Enum.filter(fn error -> error end)
       end
 
@@ -214,7 +215,7 @@ defmodule Atlas.Validator do
         record
         |> errors
         |> Keyword.get_values(attribute)
-        |> Enum.map(full_error_message(attribute, &1))
+        |> Enum.map(&full_error_message(attribute, &1))
       end
 
       defp full_error_message(attribute, nil), do: nil

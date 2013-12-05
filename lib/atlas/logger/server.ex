@@ -8,7 +8,7 @@ defmodule Atlas.Logger.Server do
   def init([log_path]) do
     case File.open(log_path, [:append]) do
       {:ok, pid} -> {:ok, pid}
-      {:error, reason} -> IO.puts "!    Unable to open log file: #{reason}"
+      {:error, reason} -> IO.puts "!    Unable to open log file: #{reason} at #{log_path}"
     end
   end
 

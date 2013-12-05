@@ -2,7 +2,7 @@ defprotocol Atlas.Present do
   def present?(data)
 end
 
-defimpl Atlas.Present, for: Number do
+defimpl Atlas.Present, for: [Integer, Float] do
   def present?(_), do: true
 end
 

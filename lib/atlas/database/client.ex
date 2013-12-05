@@ -26,6 +26,6 @@ defmodule Atlas.Database.Client do
   end
 
   defp keyword_lists_from_query(columns, rows) do
-    Enum.map rows, Enum.zip(columns, &(&1))
+    Enum.map rows, &Enum.zip(columns, &1)
   end
 end

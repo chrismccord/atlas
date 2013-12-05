@@ -109,9 +109,7 @@ defmodule Atlas.Accessors do
         unless Module.defines?(__MODULE__, {name, 1}) do
           @doc "Default getter for #{name}. Returns `record.#{name}`"
           def unquote(name)(record) do
-            quote do
-              Atlas.Record.get(record, unquote(name))
-            end
+            Atlas.Record.get(record, unquote(name))
           end
         end
       end

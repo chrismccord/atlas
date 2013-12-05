@@ -6,10 +6,10 @@ defmodule Atlas.Adapters.Postgres do
 
   def connect(config) do
     case PG.connect(
-      String.from_char_list!(config.host),
-      String.from_char_list!(config.username),
-      String.from_char_list!(config.password),
-      database: String.from_char_list!(config.database)) do
+      String.to_char_list!(config.host),
+      String.to_char_list!(config.username),
+      String.to_char_list!(config.password),
+      database: String.to_char_list!(config.database)) do
 
       {:ok, pid}       -> {:ok, pid}
       {:error, reason} -> {:error, reason}

@@ -45,7 +45,7 @@ defmodule Atlas.Database.Server do
   end
 
   defp next_conn(connections, current_connection) do
-    index = Enum.find_index(connections, &(&1) == current_connection)
+    index = Enum.find_index(connections, &(&1 == current_connection))
     if index == Enum.count(connections) - 1 do
       Enum.first(connections)
     else
