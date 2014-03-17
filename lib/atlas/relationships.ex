@@ -60,7 +60,7 @@ defmodule Atlas.Relationships do
   end
 
 
-  defmacro belongs_to(name, options  // []) do
+  defmacro belongs_to(name, options \\ []) do
     quote do
       @belongs_to BelongsTo.new(name: unquote(name),
                                 model: unquote(options[:model]),
@@ -68,7 +68,7 @@ defmodule Atlas.Relationships do
     end
   end
 
-  defmacro has_many(name, options // []) do
+  defmacro has_many(name, options \\ []) do
     quote do
       @has_many HasMany.new(name: unquote(name),
                             model: unquote(options[:model]),

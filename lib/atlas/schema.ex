@@ -135,7 +135,7 @@ defmodule Atlas.Schema do
     Keyword.get options, :default, nil
   end
 
-  defmacro field(field_name, field_type, options // [], func // nil) do
+  defmacro field(field_name, field_type, options \\ [], func \\ nil) do
     quote do
       @fields {unquote(field_name), unquote(field_type), unquote(options), unquote(func)}
     end

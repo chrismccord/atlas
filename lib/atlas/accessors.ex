@@ -70,7 +70,7 @@ defmodule Atlas.Accessors do
         User.Record[email: "user@example.com"]
 
       """
-      def new(attributes // []) when is_list(attributes) do
+      def new(attributes \\ []) when is_list(attributes) do
         assign(__MODULE__.Record.new, attributes)
       end
       def new(record) when is_record(record) do

@@ -110,42 +110,42 @@ defmodule Atlas.Validator do
   end
   def valid_number?(_), do: false
 
-  defmacro validates_presence_of(attribute, options // []) do
+  defmacro validates_presence_of(attribute, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:presence_of, unquote(attribute), unquote(options)}
     end
   end
 
-  defmacro validates_format_of(attribute, options // []) do
+  defmacro validates_format_of(attribute, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:format_of, unquote(attribute), unquote(options)}
     end
   end
 
-  defmacro validates_length_of(attribute, options // []) do
+  defmacro validates_length_of(attribute, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:length_of, unquote(attribute), unquote(options)}
     end
   end
 
-  defmacro validates_numericality_of(attribute, options // []) do
+  defmacro validates_numericality_of(attribute, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:numericality_of, unquote(attribute), unquote(options)}
     end
   end
 
-  defmacro validates_inclusion_of(attribute, options // []) do
+  defmacro validates_inclusion_of(attribute, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:inclusion_of, unquote(attribute), unquote(options)}
     end
   end
 
-  defmacro validates(method_name, options // []) do
+  defmacro validates(method_name, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:custom, unquote(method_name), unquote(options)}
