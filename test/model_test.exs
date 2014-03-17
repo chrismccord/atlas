@@ -23,8 +23,8 @@ defmodule Atlas.Fixtures.User do
   validates_numericality_of :total, greater_than: 20, less_than: 100
   validates_numericality_of :total, greater_than: 50, less_than_or_equal: 80
 
-  validates_format_of :name, with: %r/.*\s.*/
-  validates_format_of :name, with: %r/.*\s.*/, message: "Your name must include first and last"
+  validates_format_of :name, with: ~r/.*\s.*/
+  validates_format_of :name, with: ~r/.*\s.*/, message: "Your name must include first and last"
 
   validates_inclusion_of :name, in: ["jane", "bob"]
   validates_inclusion_of :name, in: ["jane", "bob"], message: "Select jane or bob"
