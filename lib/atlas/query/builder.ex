@@ -1,8 +1,6 @@
 defmodule Atlas.Query.Builder do
   alias Atlas.Query.Query
   alias Atlas.Exceptions.UndefinedRelationship
-  alias Atlas.Relationships.HasMany
-  alias Atlas.Relationships.BelongsTo
 
   @doc """
   Converts list into comma delimited binding placeholders for query.

@@ -1,6 +1,5 @@
 defmodule Atlas.Database.Server do
   use GenServer.Behaviour
-  alias :pgsql, as: PG
 
   defrecord ConfigInfo, adapter: nil,
                         database: nil,
