@@ -69,7 +69,7 @@ defmodule Atlas.Validator do
       validates_presence_of :email
       validates_length_of :email, within: 5..255
       validates_length_of :state, greater_than_or_equal: 2, less_than_or_equal: 255
-      validates_format_of :email, with: %r/.*@.*/, message: "Email must be valid"
+      validates_format_of :email, with: ~r/.*@.*/, message: "Email must be valid"
       validates_inclusion_of :age, in: [10, 11, 12]
 
       validates :lives_in_ohio
@@ -106,46 +106,46 @@ defmodule Atlas.Validator do
 
   def valid_number?(number) when is_number(number), do: true
   def valid_number?(value) when is_binary(value) do
-    Regex.match?(%r/^(-)?[0-9]+(\.[0-9]+)?$/, value)
+    Regex.match?(~r/^(-)?[0-9]+(\.[0-9]+)?$/, value)
   end
   def valid_number?(_), do: false
 
-  defmacro validates_presence_of(attribute, options // []) do
+  defmacro validates_presence_of(attribute, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:presence_of, unquote(attribute), unquote(options)}
     end
   end
 
-  defmacro validates_format_of(attribute, options // []) do
+  defmacro validates_format_of(attribute, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:format_of, unquote(attribute), unquote(options)}
     end
   end
 
-  defmacro validates_length_of(attribute, options // []) do
+  defmacro validates_length_of(attribute, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:length_of, unquote(attribute), unquote(options)}
     end
   end
 
-  defmacro validates_numericality_of(attribute, options // []) do
+  defmacro validates_numericality_of(attribute, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:numericality_of, unquote(attribute), unquote(options)}
     end
   end
 
-  defmacro validates_inclusion_of(attribute, options // []) do
+  defmacro validates_inclusion_of(attribute, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:inclusion_of, unquote(attribute), unquote(options)}
     end
   end
 
-  defmacro validates(method_name, options // []) do
+  defmacro validates(method_name, options \\ []) do
     options = normalize_validation_options(options)
     quote do
       @validations {:custom, unquote(method_name), unquote(options)}

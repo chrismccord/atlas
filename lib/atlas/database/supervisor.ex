@@ -1,7 +1,5 @@
 defmodule Atlas.Database.Supervisor do
   use Supervisor.Behaviour
-  alias Atlas.Database.ConfigInfo
-
 
   def stop(repo) do
     Process.exit Process.whereis(name(repo)), :shutdown

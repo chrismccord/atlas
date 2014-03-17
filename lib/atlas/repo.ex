@@ -3,8 +3,6 @@ defmodule Atlas.Repo do
   alias Atlas.Database.Client
   alias Atlas.Query.Query
   alias Atlas.Exceptions.AdapterError
-  alias Atlas.Relationships.HasMany
-  alias Atlas.Relationships.BelongsTo
 
   defmacro __using__(options) do
     quote do
@@ -76,7 +74,7 @@ defmodule Atlas.Repo do
         case Client.execute_prepared_query(sql, args, __MODULE__) do
           {:ok, results} ->
             results
-            |> Enum.first
+            |> List.first
             |> Keyword.get(:count)
             |> Integer.parse
             |> elem(0)
@@ -168,7 +166,7 @@ defmodule Atlas.Repo do
 
       """
       def first(query = Query[]) do
-        query.limit(1) |> all |> Enum.first
+        query.limit(1) |> all |> List.first
       end
       def first(model), do: first(to_query(model))
 
@@ -187,7 +185,7 @@ defmodule Atlas.Repo do
 
       """
       def last(query = Query[]) do
-        query.update(limit: 1) |> swap_order_direction |> all |> Enum.first
+        query.update(limit: 1) |> swap_order_direction |> all |> List.first
       end
       def last(model), do: last(to_query(model))
 

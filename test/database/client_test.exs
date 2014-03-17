@@ -14,25 +14,25 @@ defmodule Atlas.ClientTest do
 
   test "#raw_query returns raw results from database driver query" do
     {:ok, { _, _, rows}} = Client.raw_query("SELECT id FROM users WHERE id = 1", Repo)
-    row = Enum.first(rows)
-    assert Enum.first(row) == "1"
+    row = List.first(rows)
+    assert List.first(row) == "1"
   end
 
   test "#raw_prepared_query returns raw results from database driver prepared query" do
     {:ok, { _, _, rows}} = Client.raw_prepared_query("SELECT id FROM users WHERE id = ?", [1], Repo)
-    row = Enum.first(rows)
-    assert Enum.first(row) == "1"
+    row = List.first(rows)
+    assert List.first(row) == "1"
   end
 
   test "#execute_query returns query results as keyword lists" do
     {:ok, results} = Client.execute_query("SELECT id FROM users WHERE id = 1", Repo)
-    row = Enum.first results
+    row = List.first results
     assert row[:id] == "1"
   end
 
   test "#execute_prepared_query returns the results as keyword lists" do
     {:ok, results} = Client.execute_prepared_query("SELECT id FROM users WHERE id = ?", [1], Repo)
-    row = Enum.first results
+    row = List.first results
     assert row[:id] == "1"
   end
 end

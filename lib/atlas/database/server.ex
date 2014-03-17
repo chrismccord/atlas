@@ -1,6 +1,5 @@
 defmodule Atlas.Database.Server do
   use GenServer.Behaviour
-  alias :pgsql, as: PG
 
   defrecord ConfigInfo, adapter: nil,
                         database: nil,
@@ -18,7 +17,7 @@ defmodule Atlas.Database.Server do
   def init([config_options]) do
     connections = connect_all(ConfigInfo.new(config_options))
 
-    {:ok, {connections, Enum.first(connections)} }
+    {:ok, {connections, List.first(connections)} }
   end
 
   def handle_call({:execute_query, string}, _from, {connections, conn}) do
@@ -47,7 +46,7 @@ defmodule Atlas.Database.Server do
   defp next_conn(connections, current_connection) do
     index = Enum.find_index(connections, &(&1 == current_connection))
     if index == Enum.count(connections) - 1 do
-      Enum.first(connections)
+      List.first(connections)
     else
       Enum.at(connections, index + 1)
     end

@@ -78,7 +78,7 @@ defmodule Atlas.RepoTest do
   test "#all converts relation into list of Records" do
     records = User.where("age > 5") |> Repo.all
     assert Enum.count(records) == 1
-    assert Enum.first(records).name == "older"
+    assert List.first(records).name == "older"
   end
 
   test "#all returns empty list when query macthes zero records" do

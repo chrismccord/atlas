@@ -153,7 +153,7 @@ defmodule Atlas.Persistence do
         {:ok, []}
       """
       def destroy_all(records) when is_list(records) do
-        destroy_all(records, Enum.first(records).model)
+        destroy_all(records, List.first(records).model)
       end
       def destroy_all(records, model) when is_list(records) do
         ids = Enum.map records, &model.primary_key_value(&1)

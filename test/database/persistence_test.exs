@@ -3,7 +3,6 @@ Code.require_file "../test_helper.exs", __DIR__
 defmodule Atlas.PersistenceTest do
   use ExUnit.Case
   use Atlas.PersistenceTestHelper
-  alias Atlas.Database.Client
 
   defmodule Manager do
     use Atlas.Validator

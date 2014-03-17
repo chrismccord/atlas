@@ -35,12 +35,12 @@ defmodule Atlas.Database.Adapter do
 
   with values normalized using `Atlas.Database.FieldNormalizer`
   """
-  defcallback execute_prepared_query(pid, query :: binary , args :: list) :: { :ok, prepared_query :: binary } |
-                                                                             { :error, term }
+  defcallback execute_prepared_query(pid, query :: String.t , args :: list) :: { :ok, prepared_query :: String.t } |
+                                                                             { :error, any }
 
-  defcallback quote_column(column :: binary) :: column :: binary
+  defcallback quote_column(column :: String.t) :: String.t
 
-  defcallback quote_tablename(table :: binary) :: tablename :: binary
+  defcallback quote_tablename(table :: String.t) :: String.t
 
-  defcallback quote_namespaced_column(table :: binary, column :: binary) :: namespaced_col :: binary
+  defcallback quote_namespaced_column(table :: String.t, column :: String.t) :: String.t
 end
