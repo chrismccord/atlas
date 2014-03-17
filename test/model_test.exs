@@ -87,13 +87,13 @@ defmodule Atlas.UserTest do
   end
 
   test "#errors returns array of attribute, error message tuples" do
-    assert Enum.first(SimpleUser.errors(SimpleUser.Record.new(name: "Name Too Long"))) == {
+    assert List.first(SimpleUser.errors(SimpleUser.Record.new(name: "Name Too Long"))) == {
       :name, "_ must be greater than 2 and less than 6 characters"
     }
   end
 
   test "#full_error_messages returns array of binaries containing expanded errors" do
-    assert Enum.first(SimpleUser.full_error_messages(SimpleUser.Record.new(name: "Name Too Long"))) ==
+    assert List.first(SimpleUser.full_error_messages(SimpleUser.Record.new(name: "Name Too Long"))) ==
       "name must be greater than 2 and less than 6 characters"
   end
 
