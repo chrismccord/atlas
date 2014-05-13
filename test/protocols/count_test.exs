@@ -18,4 +18,9 @@ defmodule Atlas.CountTest do
     assert count(nil) == 0
     assert count(:atom) == 4
   end
+
+  test "it implements count for Map" do
+    assert count(%{}) == 0
+    assert count(%{foo: :bar}) == 1
+  end
 end
