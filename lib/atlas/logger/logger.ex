@@ -1,7 +1,7 @@
 defmodule Atlas.Logger do
 
   def log_path do
-    Path.join([:log, "#{Mix.env}.log"]) |> Path.expand
+    Path.join(["log", "#{Mix.env}.log"]) |> Path.expand
   end
 
   def log_level(repo), do: Keyword.get(repo.database_config, :log_level)
