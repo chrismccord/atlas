@@ -32,13 +32,14 @@ defmodule Atlas.PersistenceTest do
   end
   test "#update does not update database and returns error list when invalid" do
     record = Repo.first(User.where(name: "older"))
+    age_was = Repo.first(User.where(name: "older")).age
 
     {:ok, _} = User.validate(record)
     {:error, record_with_failed_attrs, errors} = Repo.update(record, [age: 0], as: User)
     {:error, _, _} = User.validate(record_with_failed_attrs)
     assert record_with_failed_attrs.age == 0
     assert :age in Keyword.keys(errors)
-    assert Repo.first(User.where(name: "older")).age == 6
+    assert Repo.first(User.where(name: "older")).age == age_was
   end
   test "#update with additional behavior applies extra validations" do
     {:ok, record} = Repo.create(User, [name: "Future Manager", age: 18], as: User)
