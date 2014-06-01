@@ -1,5 +1,5 @@
 defmodule Atlas.Persistence do
-  alias Atlas.Query.Query
+  alias Atlas.Query
   alias Atlas.Database.Client
 
   defmacro __using__(_options) do
@@ -160,7 +160,7 @@ defmodule Atlas.Persistence do
         ids = Enum.map records, &model.primary_key_value(&1)
         destroy_all(model.where([{model.primary_key, ids}]))
       end
-      def destroy_all(query = Query[]) do
+      def destroy_all(%Query{} = query) do
         {sql, args} = to_prepared_delete_sql(query, query.model)
         {:ok, _} = Client.execute_prepared_query(sql, args, __MODULE__)
       end
@@ -213,7 +213,7 @@ defmodule Atlas.Persistence do
         { prepared_sql, [Keyword.values(attributes)] }
       end
 
-      defp to_prepared_delete_sql(query = Query[], model) do
+      defp to_prepared_delete_sql(query = %Query{}, model) do
         ids = query |> all |> Enum.map(&model.primary_key_value(&1))
 
         prepared_sql = """

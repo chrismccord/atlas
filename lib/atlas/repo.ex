@@ -1,7 +1,7 @@
 defmodule Atlas.Repo do
   alias Atlas.Database
   alias Atlas.Database.Client
-  alias Atlas.Query.Query
+  alias Atlas.Query
   alias Atlas.Exceptions.AdapterError
 
   defmacro __using__(options) do
@@ -47,7 +47,7 @@ defmodule Atlas.Repo do
         nil
 
       """
-      def find(query = Query[], primary_key_value) do
+      def find(%Query{} = query, primary_key_value) do
         query |> query.model.where([{query.model.primary_key, primary_key_value}]) |> first
       end
       def find(model, primary_key_value) do
@@ -67,8 +67,8 @@ defmodule Atlas.Repo do
         8
 
       """
-      def count(query = Query[]) do
-        query = query.update(count: true, order_by: nil, order_by_direction: nil)
+      def count(%Query{} = query) do
+        query = %Query{query | count: true, order_by: nil, order_by_direction: nil}
         {sql, args} = query |> to_prepared_sql(query.model)
 
         case Client.execute_prepared_query(sql, args, __MODULE__) do
@@ -96,7 +96,7 @@ defmodule Atlas.Repo do
         [%User{id: 10, admin: true...}, %User{id: 22, admin: true...}]
 
       """
-      def all(query = Query[]) do
+      def all(%Query{} = query) do
         query
         |> to_prepared_sql(query.model)
         |> find_by_sql(query.model, query.includes)
@@ -165,8 +165,8 @@ defmodule Atlas.Repo do
         %User{id: 1..., email: "foo@bar.com"}
 
       """
-      def first(query = Query[]) do
-        query.limit(1) |> all |> List.first
+      def first(%Query{} = query) do
+        %Query{query | limit: 1} |> all |> List.first
       end
       def first(model), do: first(to_query(model))
 
@@ -184,20 +184,22 @@ defmodule Atlas.Repo do
         %User{id: 1..., email: "foo@bar.com"}
 
       """
-      def last(query = Query[]) do
-        query.update(limit: 1) |> swap_order_direction |> all |> List.first
+      def last(%Query{} = query) do
+        %{query | limit: 1} |> swap_order_direction |> all |> List.first
       end
       def last(model), do: last(to_query(model))
 
-      defp to_query(query = Query[]), do: query
+      defp to_query(%Query{} = query), do: query
       defp to_query(model), do: to_query(model.scoped)
 
       defp swap_order_direction(query) do
-        query.order_by_direction(case query.order_by_direction do
+        direction = case query.order_by_direction do
           :asc  -> :desc
           :desc -> :asc
           _ -> :desc
-        end)
+        end
+
+        %{query | order_by_direction: direction}
       end
     end
   end
