@@ -1,5 +1,4 @@
 defmodule Atlas.Relationships do
-  alias Atlas.Record
 
   defrecord BelongsTo, name: nil, model: nil, foreign_key: nil
   defrecord HasMany, name: nil, model: nil, foreign_key: nil
@@ -42,7 +41,7 @@ defmodule Atlas.Relationships do
         """
         def unquote(name)(record) do
           pkey = apply(unquote(model), :primary_key, [])
-          fkey_value = Record.get(record, unquote(fkey))
+          fkey_value = Map.get(record, unquote(fkey))
           apply(unquote(model), :where, [[{pkey, fkey_value}]])
         end
       end

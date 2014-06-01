@@ -27,10 +27,10 @@ defmodule Atlas.Persistence do
 
         iex> user = Repo.first User
         iex> Repo.update(user, [age: 10], as: User)
-        {:ok, User.Record[age: 10..]}
+        {:ok, %User{age: 10..}}
 
         iex> Repo.update(user, [age: 0], as: [User, Employee])
-        {:error, User.Record[age: 0..], ["age must be between 1 and 150"]}
+        {:error, %User{age: 0..}, ["age must be between 1 and 150"]}
 
       """
       def update(record, options) do
@@ -40,7 +40,7 @@ defmodule Atlas.Persistence do
         model     = Keyword.get(options, :model, record.model)
         behaviors = [Keyword.get(options, :as, record.model)] |> List.flatten
         unless Enum.member?(behaviors, model), do: behaviors = [model | behaviors]
-        if Enum.any?(attributes), do: record = record.update(attributes)
+        if Enum.any?(attributes), do: record = struct(record, attributes)
 
         case process_behaviors(record, behaviors) do
           {:ok, record } ->
@@ -80,7 +80,7 @@ defmodule Atlas.Persistence do
 
       @doc """
       Inserts a new record in Repo's database into `model.table` provided Keyword list of attributes
-      or `model.Record` instance and run model's validations.
+      or `model` instance and run model's validations.
 
       Behavior callbacks must be specified via the `as:` option to run model validations against.
       To skip behavior callbacks, simply provide an empty options list.
@@ -88,19 +88,19 @@ defmodule Atlas.Persistence do
       Examples
 
         iex> Repo.create(User, [age: 12], as: User)
-        {:ok, User.Record[age: 12...]}
+        {:ok, %User{age: 12...}}
 
-        iex> Repo.create(User, User.Record.new(age: 18), as: [User, Employee])
-        {:ok, User.Record[age: 18...]}
+        iex> Repo.create(User, User.new(age: 18), as: [User, Employee])
+        {:ok, %User{age: 18...}}
 
         iex> Repo.create(User, [age: 0], as: User)
-        {:error, User.Record[age: 0..], ["age must be between 1 and 150"]}
+        {:error, %User{age: 0..}, ["age must be between 1 and 150"]}
 
       """
       def create(model, attributes, options) when is_list(attributes) do
-        create model, model.Record.new(attributes), options
+        create model, model.new(attributes), options
       end
-      def create(model, record, options) when is_record(record) do
+      def create(model, record, options) when is_map(record) do
         behaviors = [Keyword.get(options, :as, model)] |> List.flatten
 
         case process_behaviors(record, behaviors) do
@@ -108,9 +108,10 @@ defmodule Atlas.Persistence do
             {sql, args} = to_prepared_insert_sql(record, model)
             {:ok, [[{_pkey, pkey_value}]]} = Client.execute_prepared_query(sql, args, __MODULE__)
 
-            {:ok, record.update(model.raw_kwlist_to_field_types([{_pkey, pkey_value}]))}
+            {:ok, struct(record, model.raw_kwlist_to_field_types([{_pkey, pkey_value}])) }
 
-          {:error, record, reasons} -> {:error, record, reasons}
+          {:error, record, reasons} ->
+            {:error, record, reasons}
         end
       end
 
@@ -123,9 +124,9 @@ defmodule Atlas.Persistence do
 
       Examples
         iex> user = User.first
-        User.Record[id: 123]
+        %User{id: 123}
         iex> Repo.destroy user, as: User
-        {:ok, User.Record[id: nil]}
+        {:ok, %User{id: nil}}
 
       """
       def destroy(record, options) do
@@ -136,7 +137,7 @@ defmodule Atlas.Persistence do
           {:ok, record} ->
             {sql, args} = to_prepared_delete_sql(record, model)
             case Client.execute_prepared_query(sql, args, __MODULE__) do
-              {:ok, _ }         -> {:ok, record.update([{model.primary_key, nil}])}
+              {:ok, _ }         -> {:ok, struct(record, [{model.primary_key, nil}])}
               {:error, reasons} -> {:error, record, reasons}
             end
           {:error, record, reasons} -> {:error, record, reasons}
@@ -148,7 +149,7 @@ defmodule Atlas.Persistence do
 
       Examples
         iex> trashed_users = User.where(archived: true) |> Repo.all
-        [User.Record[id: 123], User.Record[id: 124], User.Record[id: 125]...]
+        [%User{id: 123}, %User{id: 124}, %User{id: 125}...]
         iex> Repo.destroy_all trashed_users, [User]
         {:ok, []}
       """
@@ -189,7 +190,7 @@ defmodule Atlas.Persistence do
       end
 
       defp to_prepared_update_sql(record, model) do
-        attributes = Atlas.Record.to_list(record)
+        attributes = model.to_list(record)
         prepared_sql = """
         UPDATE #{adapter.quote_tablename(model.table)}
         SET #{to_set_sql(attributes)}

@@ -2,8 +2,8 @@ defmodule Atlas.Schema do
   import Atlas.FieldConverter
 
   @moduledoc """
-  Provides schema definitions and Record generation through a `field` macro and
-  `__MODULE__.Record` record to hold model state.
+  Provides schema definitions and Struct generation through a `field` macro and
+  `%__MODULE__{}` struct to hold model state.
   `field` definitions provide handling conversion of binary database results
   into schema defined types.
 
@@ -25,8 +25,8 @@ defmodule Atlas.Schema do
       field :active, :boolean, default: true
     end
 
-    iex> User.Record.new
-    User.Record[active: true, email: nil]
+    iex> User.new
+    %User{active: true, email: nil}
   """
 
   defmacro __using__(_options) do
@@ -49,8 +49,7 @@ defmodule Atlas.Schema do
     quote do
       @primary_key (@primary_key || @default_primary_key)
 
-      defrecord Preloaded, preloaded_fields(__MODULE__, @belongs_to, @has_many)
-      defrecord Record, record_fields(@fields, __MODULE__, __MODULE__.Preloaded.new)
+      defstruct struct_fields(@fields, __MODULE__, preloaded_fields(__MODULE__, @belongs_to, @has_many))
 
       def __atlas__(:table), do: @table
       def __atlas__(:fields), do: @fields
@@ -59,14 +58,19 @@ defmodule Atlas.Schema do
 
       def primary_key, do: @primary_key
 
-      def primary_key_value(record), do: Atlas.Record.get(record, @primary_key)
+      def primary_key_value(record), do: Map.get(record, @primary_key)
 
-      def to_list(record), do: Atlas.Record.to_list(record)
+      def to_list(record) do
+        reserved_fields = [:model, :__struct__, :__preloaded__]
+        for {key, _} <- Map.to_list(record), !Enum.member?(reserved_fields, key) do
+          {key, Map.get(record, key)}
+        end
+      end
 
       def raw_query_results_to_records(results) do
         results
         |> Enum.map(fn row -> raw_kwlist_to_field_types(row) end)
-        |> Enum.map(fn row -> __MODULE__.Record.new(row) end)
+        |> Enum.map(fn row -> struct(__MODULE__, row) end)
       end
 
       def raw_kwlist_to_field_types(kwlist) do
@@ -84,34 +88,32 @@ defmodule Atlas.Schema do
       Returns the attribute value from the record converted to its field type
       """
       def get(record, attribute) do
-        value_to_field_type(
-          Atlas.Record.get(record, attribute),
-          field_type_for_name(attribute)
-        )
+        value_to_field_type(Map.get(record, attribute),
+                            field_type_for_name(attribute))
       end
 
       @doc """
       Return the preloaded association results for the given record
 
-      record - The __MODULE__.Record
+      record - The %__MODULE__{}
       association_name - The atom of the association name
 
       Examples
 
         iex> user = Repo.first User.preloads(:orders) |> User.where(id: 5)
-        [User.Record[id: 5, __preloaded__: User.Preloaded[orders: [Order.Record[id: 123..]
+        [%User{id: 5, __preloaded__: %{orders: [%Order{id: 123..}]}}]
         iex> User.preloaded(user, :orders)
-        [Order.Record[id: 123...]]
+        [%Order{id: 123...}]
 
       """
       def preloaded(record, association_name) do
-        Atlas.Record.get(record.__preloaded__, association_name)
+        Keyword.get(record.__preloaded__, association_name)
       end
     end
   end
 
-  def record_fields(fields, model, preload_record) do
-    fields_to_kwlist(fields) ++ [model: model, __preloaded__: preload_record]
+  def struct_fields(fields, model, preload_map) do
+    fields_to_kwlist(fields) ++ [model: model, __preloaded__: preload_map]
   end
 
   @doc """
@@ -123,7 +125,7 @@ defmodule Atlas.Schema do
   end
 
   @doc """
-  Converts @fields attribute to keyword list to be used for Record definition
+  Converts @fields attribute to keyword list to be used for Struct definition
   iex> Schema.fields_to_kwlist([{:active, :boolean, [default: true]}, {:id, :integer, []}])
   [id: nil, active: true]
   """

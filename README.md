@@ -52,7 +52,7 @@ defmodule User do
 end
 
 iex> admin = Repo.first User.admin_with_email("foo@bar.com")
-User.Record[id: 5, email: "foo@bar.com", archived: false, is_site_admin: true...]
+%User{id: 5, email: "foo@bar.com", archived: false, is_site_admin: true...}
 ```
 
 ## Query Builder
@@ -64,10 +64,10 @@ iex> User.where(email: "user@example.com")
      |> User.order(update_at: :asc)
      |> Repo.all
 
-[User.Record[id: 5, archived: true, is_site_admin: false...], User.Record[id: 5, archived: true, is_site_admin: false...]]
+[%User{id: 5, archived: true, is_site_admin: false...}, %User{id: 5, archived: true, is_site_admin: false...}]
 
 iex> user =  User.where(email: "user@example.com") |> Repo.first
-User.Record[id: 5, archived: false, is_site_admin: false...]
+%User{id: 5, archived: false, is_site_admin: false...}
 iex> user.email
 user@example.com
 
@@ -75,7 +75,7 @@ iex> User.where(archived: true)
      |> User.order(updated_at: :desc)
      |> Repo.first
 
-User.Record[id: 5, archived: true, is_site_admin: false...]
+%User{id: 5, archived: true, is_site_admin: false...}
 ```
 
 #### Queries are composable
@@ -96,7 +96,7 @@ defmodule UserSearch do
 end
 
 iex> UserSearch.perform(is_site_admin: true, email: "user@example.com")
-[User.Record[email: "user@example.com"]]
+[%User{email: "user@example.com"}]
 ```
 
 
@@ -132,14 +132,14 @@ end
 
 ```elixir
 iex> Repo.create(User, [age: 12, name: "Dilbert"], as: User)
-{:ok, User.Record[age: 12...]}
+{:ok, %User{age: 12...}}
 
 iex> user = Repo.first(User)
 iex> Repo.update(user, [age: 18], as: [User, Manager])
-{:error, User.Record[age: 18...], ["managers must be at least 21"]}
+{:error, %User{age: 18...}, ["managers must be at least 21"]}
 
 iex> Repo.create(User, [age: 0, name: "Chris"], as: User)
-{:error, User.Record[age: 0..], ["age must be between 1 and 150"]}
+{:error, %User{age: 0..}, ["age must be between 1 and 150"]}
 ```
 
 ## Accessors
@@ -150,7 +150,7 @@ from the shema field definitions.
 By default, Accessors are simply pass-throughs to the raw record setter and getter
 values; however, accessors can be overriden by the module for extended behavior
 and transformations before writing to, or after reading from the database.
-`assign` functions transform attributes when creating a new Record via `Model.new` and 
+`assign` functions transform attributes when creating a new Struct via `Model.new` and 
 before running model callbacks such as validations.
 
 Example attribute assignment:
@@ -196,11 +196,11 @@ that returns the first record matching that field from the database.
 
 ## Validation Support
 ```elixir
-iex> user = User.Record.new(email: "invalid")
-User.Record[id: nil, email: "invalid", is_site_admin: nil...
+iex> user = User.new(email: "invalid")
+%User{id: nil, email: "invalid", is_site_admin: nil...}
 
 iex> User.validate user
-{:error, User.Record[newsletter_updated_at: ...}, [email: "Email must be valid", email: "_ must be between 5 and 255 characters",
+{:error, %User{newsletter_updated_at: ...}, [email: "Email must be valid", email: "_ must be between 5 and 255 characters",
   email: "_ must not be blank"]}
 
 iex> User.full_error_messages user

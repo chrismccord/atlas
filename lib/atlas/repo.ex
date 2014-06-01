@@ -32,17 +32,17 @@ defmodule Atlas.Repo do
       @doc """
       Finds the model record when given previous query scope or base Model and value of primary key
 
-      Returns the namespaced model.Record if exists in database, nil otherwise
+      Returns the model Struct if exists in database, nil otherwise
 
       Examples
 
         iex> Repo.find(User, 1)
-        User.Record[id: 1...]
+        %User{id: 1...}
         iex> Repo.find(User, 0)
         nil
 
         iex> Repo.find(User.admins, 1)
-        User.Record[id: 1..., is_site_admin: true]
+        %User{id: 1..., is_site_admin: true}
         iex> Repo.find(User.admins, 0)
         nil
 
@@ -85,15 +85,15 @@ defmodule Atlas.Repo do
       def count(model), do: count(to_query(model))
 
       @doc """
-      Execute Quer expression with adapter and return database results as normalized
-      `model.Record` instances
+      Execute Query expression with adapter and return database results as normalized
+      `model` instances
 
       Examples
 
         iex> Repo.all User
-        [User.Record[id: 1...], User.Record[id: 2...]]...
+        [%User{id: 1...}, %User{id: 2...}]...
         iex> Repo.all User.where(admin: true)
-        [User.Record[id: 10, admin: true...], User.Record[id: 22, admin: true...]]
+        [%User{id: 10, admin: true...}, %User{id: 22, admin: true...}]
 
       """
       def all(query = Query[]) do
@@ -105,7 +105,7 @@ defmodule Atlas.Repo do
 
       @doc """
       'Low level' database access for executing raw prepared SQL against the database.
-      Returns results as normalized as `model.Record` instances.
+      Returns results as normalized as `model` instances.
 
       Examples
 
@@ -145,7 +145,7 @@ defmodule Atlas.Repo do
 
         if Enum.any? record_preloads do
           preloaded_association = apply(record.__preloaded__, relation.name, [record_preloads])
-          record.update(__preloaded__: preloaded_association)
+          %{record | __preloaded__: preloaded_association}
         else
           record
         end
@@ -155,14 +155,14 @@ defmodule Atlas.Repo do
       Execute Query expression with adapter, limiting result set to one.
       If Model is provided in place of Query expression, converts model to query.
 
-      Returns the first result as normalized `model.Record` instance from `query.model.table`
+      Returns the first result as normalized `model` instance from `query.model.table`
 
       Examples
 
         iex> Repo.first User
-        User.Repo[id: 1...]
+        %User{id: 1...}
         iex> Repo.first User.where(email: "foo@bar.com")
-        User.Repo[id: 1..., email: "foo@bar.com"]
+        %User{id: 1..., email: "foo@bar.com"}
 
       """
       def first(query = Query[]) do
@@ -174,14 +174,14 @@ defmodule Atlas.Repo do
       Execute Query expression with adapter, limiting results to one and swapping order direction.
       If Model is provided in place of Query expression, converts model to query.
 
-      Returns the first result as normalized `model.Record` instance from `query.model.table`
+      Returns the first result as normalized `model` instance from `query.model.table`
 
       Examples
 
         iex> Repo.last User
-        User.Repo[id: 1...]
+        %User{id: 1...}
         iex> Repo.last User.where(email: "foo@bar.com").order(id: :desc)
-        User.Repo[id: 1..., email: "foo@bar.com"]
+        %User{id: 1..., email: "foo@bar.com"}
 
       """
       def last(query = Query[]) do
