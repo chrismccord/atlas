@@ -25,7 +25,7 @@ defmodule Atlas.Logger do
   end
 
   def puts(string) do
-    :gen_server.call :logger_server, {:write, string}
+    GenServer.call :logger_server, {:write, string}
     if in_console?, do: IO.puts string
   end
 

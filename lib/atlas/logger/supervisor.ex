@@ -1,8 +1,8 @@
 defmodule Atlas.Logger.Supervisor do
-  use Supervisor.Behaviour
+  use Supervisor
 
   def start_link(log_path) do
-    :supervisor.start_link(__MODULE__, log_path)
+    Supervisor.start_link(__MODULE__, log_path)
   end
 
   def init(log_path) do

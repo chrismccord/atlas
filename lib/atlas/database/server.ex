@@ -1,11 +1,11 @@
 defmodule Atlas.Database.Server do
-  use GenServer.Behaviour
+  use GenServer
 
   alias Atlas.Database.Server.ConfigInfo
   alias Atlas.Database.Server.Connection
 
   def start_link(repo) do
-    :gen_server.start_link({:local, repo.server_name}, __MODULE__, [repo.database_config], [])
+    GenServer.start_link(__MODULE__, [repo.database_config], name: repo.server_name)
   end
 
   def init([config_options]) do

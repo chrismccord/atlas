@@ -1,12 +1,12 @@
 defmodule Atlas.Database.Supervisor do
-  use Supervisor.Behaviour
+  use Supervisor
 
   def stop(repo) do
     Process.exit Process.whereis(name(repo)), :shutdown
   end
 
   def start_link(repo) do
-    :supervisor.start_link({:local, name(repo)}, __MODULE__, repo)
+    Supervisor.start_link(__MODULE__, repo, name: name(repo))
   end
 
   def init(repo) do
