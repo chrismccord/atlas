@@ -1,21 +1,15 @@
 defmodule Atlas.Database.Server do
   use GenServer.Behaviour
 
-  defrecord ConfigInfo, adapter: nil,
-                        database: nil,
-                        username: nil,
-                        password: nil,
-                        host: nil,
-                        pool: 1
-
-  defrecord Connection, pid: nil, adapter: nil
+  alias Atlas.Database.Server.ConfigInfo
+  alias Atlas.Database.Server.Connection
 
   def start_link(repo) do
     :gen_server.start_link({:local, repo.server_name}, __MODULE__, [repo.database_config], [])
   end
 
   def init([config_options]) do
-    connections = connect_all(ConfigInfo.new(config_options))
+    connections = connect_all(struct(ConfigInfo, config_options))
 
     {:ok, {connections, List.first(connections)} }
   end
@@ -39,7 +33,7 @@ defmodule Atlas.Database.Server do
   defp connect_all(config) do
     Enum.map 1..(config.pool), fn _pool ->
       {:ok, pid} = connect(config)
-      Connection.new(pid: pid, adapter: config.adapter)
+      %Connection{pid: pid, adapter: config.adapter}
     end
   end
 
