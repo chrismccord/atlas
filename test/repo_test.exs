@@ -55,11 +55,11 @@ defmodule Atlas.RepoTest do
   end
 
 
-  test "#select returns Records witih only selected field set" do
-    record = User.select(:id) |> Repo.first
-    assert record.id == Repo.first(User).id
-    refute record.name
-    refute record.name == Repo.first(User).name
+  test "#select returns Struct witih only selected field set" do
+    user = User.select(:id) |> Repo.first
+    assert user.id == Repo.first(User).id
+    refute user.name
+    refute user.name == Repo.first(User).name
   end
 
 
@@ -75,7 +75,7 @@ defmodule Atlas.RepoTest do
     assert (User.where("lower(name) = 'younger'") |> Repo.first).age == 5
   end
 
-  test "#all converts relation into list of Records" do
+  test "#all converts relation into list of Structs" do
     records = User.where("age > 5") |> Repo.all
     assert Enum.count(records) == 1
     assert List.first(records).name == "older"

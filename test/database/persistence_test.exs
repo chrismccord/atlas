@@ -16,10 +16,10 @@ defmodule Atlas.PersistenceTest do
   end
 
   test "persisted? returns true if record has primary key" do
-    assert Repo.persisted?(User.Record.new(id: 1), User)
+    assert Repo.persisted?(%User{id: 1}, User)
   end
   test "persisted? returns false if record has no primary key" do
-    refute Repo.persisted?(User.Record.new(id: nil), User)
+    refute Repo.persisted?(%User{id: nil}, User)
   end
 
   test "#update updates the records attributes to the database with valid model" do
@@ -55,7 +55,7 @@ defmodule Atlas.PersistenceTest do
   end
   test "#create with record inserts record attributes into the database" do
     refute Repo.first(User.where(name: "Joe"))
-    {:ok, _user} = Repo.create(User, User.Record.new(name: "Joe", age: 30), as: User)
+    {:ok, _user} = Repo.create(User, %User{name: "Joe", age: 30}, as: User)
     assert Repo.first(User.where(name: "Joe"))
   end
 

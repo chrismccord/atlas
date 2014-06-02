@@ -14,3 +14,7 @@ defimpl Atlas.Count, for: Atom do
   def count(nil), do: 0
   def count(atom), do: atom |> atom_to_binary |> String.length
 end
+
+defimpl Atlas.Count, for: Map do
+  def count(map), do: map_size(map)
+end

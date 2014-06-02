@@ -1,5 +1,5 @@
 defmodule Atlas.Query.Builder do
-  alias Atlas.Query.Query
+  alias Atlas.Query
   alias Atlas.Exceptions.UndefinedRelationship
 
   @doc """
@@ -37,20 +37,20 @@ defmodule Atlas.Query.Builder do
       def where(kwlist) when is_list(kwlist) do
         where new_base_query, kwlist
       end
-      def where(query = Query[], kwlist) when is_list(kwlist) do
-        query.wheres(query.wheres ++ [kwlist])
+      def where(%Query{} = query, kwlist) when is_list(kwlist) do
+        %{query | wheres: [kwlist | query.wheres]}
       end
 
       def where(query_string, values) when is_binary(query_string) do
         where new_base_query, query_string, List.flatten([values])
       end
-      def where(query = Query[], query_string, values) when is_binary(query_string) do
-        query.wheres(query.wheres ++ [{query_string, List.flatten([values])}])
+      def where(%Query{} = query, query_string, values) when is_binary(query_string) do
+        %{query | wheres: [{query_string, List.flatten([values])} | query.wheres]}
       end
       def where(query_string) when is_binary(query_string) do
         where(query_string, [])
       end
-      def where(query = Query[], query_string) when is_binary(query_string) do
+      def where(%Query{} = query, query_string) when is_binary(query_string) do
         where(query, query_string, [])
       end
 
@@ -58,32 +58,32 @@ defmodule Atlas.Query.Builder do
         order new_base_query, options
       end
       def order(query, field) when is_atom(field) or is_binary(field) do
-        query.order_by(field)
+        %{query | order_by: field}
       end
       def order(query, [{field, direction}]) do
-        query.update(order_by: field, order_by_direction: direction)
+        %{query | order_by: field, order_by_direction: direction}
       end
       def order_direction(query, direction) do
-        query.order_by_direction(direction)
+        %{query | order_by_direction: direction}
       end
 
       def limit(number) do
         limit new_base_query, number
       end
       def limit(query, number) do
-        query.limit(number)
+        %{query | limit: number}
       end
 
       def offset(number) do
         offset new_base_query, number
       end
       def offset(query, number) do
-        query.offset(number)
+        %{query | offset: number}
       end
 
       def select(column), do: select(new_base_query, column)
       def select(query, column) do
-        query.select(to_string(column))
+        %{query | select: to_string(column)}
       end
 
       @doc """
@@ -93,15 +93,15 @@ defmodule Atlas.Query.Builder do
       ## Examples
 
         iex> User.joins(:comments)
-        Atlas.Query.Query[... joins: [{User,Atlas.Relationships.HasMany[name: :orders, model: Order,
-        foreign_key: :user_id]}]
+        %Atlas.Query{... joins: [{User.Atlas.Relationships.HasMany[name: :orders, model: Order,
+        foreign_key: :user_id]}}
 
         iex> User.joins(Comment)
-        Atlas.Query.Query[... joins: [{User,Atlas.Relationships.HasMany[name: :orders, model: Order,
-        foreign_key: :user_id]}]
+        %Atlas.Query{... joins: [{User.Atlas.Relationships.HasMany[name: :orders, model: Order,
+        foreign_key: :user_id]}}
 
         iex> User.joins("INNER JOIN orders ON orders.user_id = users.id")
-        Atlas.Query.Query[joins: ["INNER JOIN orders ON orders.user_id = users.id"]...]
+        %Atlas.Query{joins: ["INNER JOIN orders ON orders.user_id = users.id"]...}
 
       """
       def joins(sql) when is_binary(sql) do
@@ -111,7 +111,7 @@ defmodule Atlas.Query.Builder do
         joins new_base_query, relation
       end
       def joins(query, sql) when is_binary(sql) do
-        query.joins(query.joins ++ [sql])
+        %{query | joins: [sql | query.joins]}
       end
       def joins(query, identifier) do
         relation = query.model.find_relationship(identifier)
@@ -121,7 +121,7 @@ defmodule Atlas.Query.Builder do
           """
         end
 
-        query.joins(query.joins ++ [{query.model, relation}])
+        %{query | joins: [{query.model, relation} | query.joins]}
       end
 
       def includes(identifier) do
@@ -136,7 +136,7 @@ defmodule Atlas.Query.Builder do
           """
         end
 
-        query.includes(query.includes ++ [{query.model, relation}])
+        %{query | includes: [{query.model, relation} | query.includes]}
       end
     end
   end

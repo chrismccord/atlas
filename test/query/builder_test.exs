@@ -16,7 +16,7 @@ defmodule Atlas.Query.BuilderTest do
 
   test "chaining wheres with query string only" do
     relation = User.where("name IS NOT NULL") |> User.where("age > 18")
-    assert relation.wheres == [{"name IS NOT NULL", []}, {"age > 18", []}]
+    assert relation.wheres == [{"age > 18", []}, {"name IS NOT NULL", []}]
   end
 
   test "wheres with query string and bound values" do
@@ -29,9 +29,8 @@ defmodule Atlas.Query.BuilderTest do
 
   test "chaining wheres with query string and bound values" do
     relation = User.where("name = ?", ["chris"]) |> User.where("age = ?", [18])
-    assert relation.wheres == [{"name = ?", ["chris"]}, {"age = ?", [18]}]
+    assert relation.wheres == [{"age = ?", [18]}, {"name = ?", ["chris"]}]
   end
-
 
   test "wheres with keyword list with single key" do
     assert User.where(name: "chris").wheres == [[name: "chris"]]
@@ -43,9 +42,8 @@ defmodule Atlas.Query.BuilderTest do
 
   test "chaining wheres with keyword list" do
     relation = User.where(name: "chris", age: 26) |> User.where(active: true)
-    assert relation.wheres == [[name: "chris", age: 26], [active: true]]
+    assert relation.wheres == [[active: true], [name: "chris", age: 26]]
   end
-
 
   test "chaining query string and keyword list queries" do
     relation = User.where(name: "chris", age: 26)
@@ -55,19 +53,19 @@ defmodule Atlas.Query.BuilderTest do
                |> User.where("state = ? OR state = ?", ["complete", "in_progress"])
 
     assert relation.wheres == [
-      [name: "chris", age: 26],
-      [active: true],
-      {"email IS NOT NULL", []},
+      {"state = ? OR state = ?", ["complete", "in_progress"]},
       {"lower(email) = ?", ["chris@atlas.dev"]},
-      {"state = ? OR state = ?", ["complete", "in_progress"]}
+      {"email IS NOT NULL", []},
+      [active: true],
+      [name: "chris", age: 26]
     ]
   end
 
-  test "#select returns Records witih only selected field set" do
-    record = User.select(:id) |> Repo.first
-    assert record.id == Repo.first(User).id
-    refute record.name
-    refute record.name == Repo.first(User).name
+  test "#select returns Structs with only selected field set" do
+    user = User.select(:id) |> Repo.first
+    assert user.id == Repo.first(User).id
+    refute user.name
+    refute user.name == Repo.first(User).name
   end
 
 
@@ -140,8 +138,8 @@ defmodule Atlas.Query.BuilderTest do
 
 
     assert Repo.joins_to_sql(query) == Enum.join([
-      "INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"users\".id",
-      "INNER JOINS foo ON foo.id = bar.foo_id"
+      "INNER JOINS foo ON foo.id = bar.foo_id",
+      "INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"users\".id"
     ], "\n")
   end
 end

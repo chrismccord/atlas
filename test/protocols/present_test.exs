@@ -25,4 +25,9 @@ defmodule Atlas.PresentTest do
     assert present?("here")
     refute present?("")
   end
+
+  test "it implements present? for Map" do
+    refute present?(%{})
+    assert present?(%{foo: :bar})
+  end
 end

@@ -3,7 +3,6 @@ defmodule Atlas.Validator do
 
   alias Atlas.Present
   alias Atlas.Count
-  alias Atlas.Record
 
   @moduledoc """
   Provides Model validations including validation rule definitions and error messages.
@@ -80,8 +79,8 @@ defmodule Atlas.Validator do
     end
 
     ```
-    iex> user = User.Record.new(email: "invalid")
-    User.Record[id: nil, email: "invalid"...
+    iex> user = User.new(email: "invalid")
+    %User{id: nil, email: "invalid"...}
 
     iex> User.valid? user
     false
@@ -174,7 +173,7 @@ defmodule Atlas.Validator do
 
       ## Examples
 
-        iex> User.errors(UserRecord.new(name: "Chris"))
+        iex> User.errors(User.new(name: "Chris"))
         [name: "must be greater than 5 characters"]
 
       """
@@ -189,7 +188,7 @@ defmodule Atlas.Validator do
 
       ## Examples
 
-        iex> User.full_error_messages(UserRecord.new(name: "Chris"))
+        iex> User.full_error_messages(User.new(name: "Chris"))
         ["name must be greater than 5 characters"]
 
       """
@@ -204,10 +203,10 @@ defmodule Atlas.Validator do
 
       ## Examples
 
-        iex> User.errors_on(UserRecord.new(name: "Chris"), :name)
+        iex> User.errors_on(User.new(name: "Chris"), :name)
         ["name must be greater than 5 characters"]
 
-        iex> User.errors_on(UserRecord.new(name: "Chris McCord"), :name)
+        iex> User.errors_on(User.new(name: "Chris McCord"), :name)
         nil
 
       """
@@ -240,14 +239,14 @@ defmodule Atlas.Validator do
       # end
 
       defp process_validation_form(record, {:presence_of, attribute, options}) do
-        value   = Record.get(record, attribute)
+        value   = Map.get(record, attribute)
         message = Keyword.get options, :message, "_ must not be blank"
 
         unless Present.present?(value), do: {attribute, message}
       end
 
       defp process_validation_form(record, {:format_of, attribute, options}) do
-        value   = to_string(Record.get(record, attribute))
+        value   = to_string(Map.get(record, attribute))
         regexp  = Keyword.get options, :with
         message = Keyword.get options, :message, "_ is not valid"
 
@@ -255,7 +254,7 @@ defmodule Atlas.Validator do
       end
 
       defp process_validation_form(record, {:inclusion_of, attribute, options}) do
-        value   = to_string(Record.get(record, attribute))
+        value   = to_string(Map.get(record, attribute))
         in_list = Keyword.get(options, :in, []) |> Enum.map &to_string(&1)
         message = Keyword.get options, :message, "_ must be one of #{Enum.join in_list, ", "}"
 
@@ -263,7 +262,7 @@ defmodule Atlas.Validator do
       end
 
       defp process_validation_form(record, {:length_of, attribute, options}) do
-        length  = Count.count(Record.get(record, attribute))
+        length  = Count.count(Map.get(record, attribute))
         message = Keyword.get options, :message
         options = Keyword.delete options, :message
         within  = Keyword.get options, :within
@@ -302,7 +301,7 @@ defmodule Atlas.Validator do
       end
 
       defp process_validation_form(record, {:numericality_of, attribute, options}) do
-        value   = value_to_field_type(Record.get(record, attribute), :float)
+        value   = value_to_field_type(Map.get(record, attribute), :float)
         message = Keyword.get options, :message
         options = Keyword.delete options, :message
         within  = Keyword.get options, :within

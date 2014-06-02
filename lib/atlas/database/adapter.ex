@@ -4,6 +4,7 @@ defmodule Atlas.Database.Adapter do
   """
 
   use Behaviour
+
   alias Atlas.Database.Server.ConfigInfo
 
   defcallback connect(config_info :: ConfigInfo) :: { :ok, pid } |

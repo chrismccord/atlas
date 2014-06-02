@@ -1,8 +1,12 @@
 defmodule Atlas.Relationships do
-  alias Atlas.Record
 
-  defrecord BelongsTo, name: nil, model: nil, foreign_key: nil
-  defrecord HasMany, name: nil, model: nil, foreign_key: nil
+  defmodule BelongsTo do
+    defstruct name: nil, model: nil, foreign_key: nil
+  end
+
+  defmodule HasMany do
+    defstruct name: nil, model: nil, foreign_key: nil
+  end
 
   defmacro __using__(_options) do
     quote do
@@ -35,19 +39,19 @@ defmodule Atlas.Relationships do
         end
       end
 
-      Enum.each @belongs_to, fn BelongsTo[name: name, model: model, foreign_key: fkey] ->
+      Enum.each @belongs_to, fn %BelongsTo{name: name, model: model, foreign_key: fkey} ->
         @doc """
         Return query expression for `belongs_to :#{name}` relationship to find
         #{model} by #{__MODULE__}'s primary key
         """
         def unquote(name)(record) do
           pkey = apply(unquote(model), :primary_key, [])
-          fkey_value = Record.get(record, unquote(fkey))
+          fkey_value = Map.get(record, unquote(fkey))
           apply(unquote(model), :where, [[{pkey, fkey_value}]])
         end
       end
 
-      Enum.each @has_many, fn HasMany[name: name, model: model, foreign_key: fkey] ->
+      Enum.each @has_many, fn %HasMany{name: name, model: model, foreign_key: fkey} ->
         @doc """
         Return query expression for `has_many :#{name}` relationship to find all
         #{model}'s by #{__MODULE__}'s' primary key
@@ -62,17 +66,17 @@ defmodule Atlas.Relationships do
 
   defmacro belongs_to(name, options \\ []) do
     quote do
-      @belongs_to BelongsTo.new(name: unquote(name),
-                                model: unquote(options[:model]),
-                                foreign_key: unquote(options[:foreign_key]))
+      @belongs_to %BelongsTo{name: unquote(name),
+                             model: unquote(options[:model]),
+                             foreign_key: unquote(options[:foreign_key])}
     end
   end
 
   defmacro has_many(name, options \\ []) do
     quote do
-      @has_many HasMany.new(name: unquote(name),
-                            model: unquote(options[:model]),
-                            foreign_key: unquote(options[:foreign_key]))
+      @has_many %HasMany{name: unquote(name),
+                         model: unquote(options[:model]),
+                         foreign_key: unquote(options[:foreign_key])}
     end
   end
 end

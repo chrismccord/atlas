@@ -21,20 +21,20 @@ defmodule Atlas.SchemaTest do
                                        {:id, :integer, [], nil}]
   end
 
-  test "macro #field defines __MODULE__.Record with defined fields" do
-    assert User.Record.new.age == 18
-    assert User.Record.new.id == nil
+  test "macro #field defines %__MODULE__{} with defined fields" do
+    assert User.new.age == 18
+    assert User.new.id == nil
   end
 
   test "#fields_to_kwlist converts @fields attribute to keyword list with default values" do
     fields = [{:id, :integer, [], nil}, {:active, :boolean, [default: true], nil}]
     assert Schema.fields_to_kwlist(fields) == [id: nil, active: true]
-    assert User.Record.new == User.Record[id: nil, age: 18]
+    assert User.new == %User{id: nil, age: 18}
   end
 
   test "#default_for_field returns default value" do
     assert Schema.default_for_field({:age, :integer, [default: 18], nil}) == 18
-    assert User.Record.new.age == 18
+    assert User.new.age == 18
   end
 
   test "#default_for_field returns nil when no default value given" do

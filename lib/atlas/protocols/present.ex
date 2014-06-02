@@ -20,3 +20,7 @@ end
 defimpl Atlas.Present, for: BitString do
   def present?(string), do: String.length(string) > 0
 end
+
+defimpl Atlas.Present, for: Map do
+  def present?(map), do: map_size(map) > 0
+end

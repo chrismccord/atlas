@@ -1,5 +1,5 @@
 defmodule Atlas.Query.Processor do
-  alias Atlas.Query.Query
+  alias Atlas.Query
   alias Atlas.Relationships.HasMany
   alias Atlas.Relationships.BelongsTo
   import Atlas.FieldConverter
@@ -10,20 +10,20 @@ defmodule Atlas.Query.Processor do
 
       def adapter, do: @adapter
 
-      def select_to_sql(query = Query[select: nil, count: true], model) do
+      def select_to_sql(query = %Query{select: nil, count: true}, model) do
         "COUNT(#{adapter.quote_tablename(model.table)}.*)"
       end
-      def select_to_sql(query = Query[select: nil], model) do
+      def select_to_sql(query = %Query{select: nil}, model) do
         "#{adapter.quote_tablename(model.table)}.*"
       end
-      def select_to_sql(query = Query[count: true], model) do
+      def select_to_sql(query = %Query{count: true}, model) do
         "COUNT(#{adapter.quote_tablename(model.table)}.#{adapter.quote_column(query.select)})"
       end
       def select_to_sql(query, model) do
         "#{adapter.quote_tablename(model.table)}.#{adapter.quote_column(query.select)}"
       end
 
-      def wheres_to_sql(Query[wheres: []], model), do: nil
+      def wheres_to_sql(%Query{wheres: []}, model), do: nil
       def wheres_to_sql(query, model) do
         "WHERE " <> join_wheres_with(query.wheres, "AND")
       end
@@ -33,7 +33,7 @@ defmodule Atlas.Query.Processor do
       end
 
       def order_by_to_sql(query) do
-        Query[order_by: order_by, order_by_direction: direction] = query
+        %Query{order_by: order_by, order_by_direction: direction} = query
         if order_by do
           """
           ORDER BY #{order_by}#{if direction, do: " #{String.upcase to_string(direction)}"}
@@ -41,18 +41,18 @@ defmodule Atlas.Query.Processor do
         end
       end
 
-      def limit_to_sql(Query[limit: nil]), do: nil
+      def limit_to_sql(%Query{limit: nil}), do: nil
       def limit_to_sql(query), do: "LIMIT #{query.limit}"
 
-      def offset_to_sql(Query[offset: nil]), do: nil
+      def offset_to_sql(%Query{offset: nil}), do: nil
       def offset_to_sql(query), do: "OFFSET #{query.offset}"
 
-      def joins_to_sql(Query[joins: []]), do: nil
-      def joins_to_sql(Query[joins: joins]) do
+      def joins_to_sql(%Query{joins: []}), do: nil
+      def joins_to_sql(%Query{joins: joins}) do
         Enum.map_join joins, "\n", &join_to_sql(&1)
       end
       def join_to_sql(sql) when is_binary(sql), do: sql
-      def join_to_sql({from_model, BelongsTo[model: to_model, foreign_key: foreign_key]}) do
+      def join_to_sql({from_model, %BelongsTo{model: to_model, foreign_key: foreign_key}}) do
         foreign_key = adapter.quote_column(foreign_key)
         to_table    = adapter.quote_tablename(to_model.table)
         from_table  = adapter.quote_tablename(from_model.table)
@@ -61,7 +61,7 @@ defmodule Atlas.Query.Processor do
 
         "INNER JOIN #{to_table} ON #{to_table}.#{primary_key} = #{from_table}.#{foreign_key}"
       end
-      def join_to_sql({from_model, HasMany[model: to_model, foreign_key: foreign_key]}) do
+      def join_to_sql({from_model, %HasMany{model: to_model, foreign_key: foreign_key}}) do
         from        = adapter.quote_tablename(from_model.table)
         foreign_key = adapter.quote_column(foreign_key)
         to          = adapter.quote_tablename(to_model.table)
@@ -76,7 +76,7 @@ defmodule Atlas.Query.Processor do
       end
 
       defp normalize_query_for_sql(query, model) do
-        query.update(wheres: normalize_wheres(query, model))
+        %Query{query | wheres: normalize_wheres(query, model)}
       end
 
       @doc """
@@ -85,10 +85,10 @@ defmodule Atlas.Query.Processor do
 
       Examples
 
-        iex> normalize_wheres(Query[ wheres: [name: "Elixir"] ], User)
+        iex> normalize_wheres(%Query{ wheres: [name: "Elixir"] }, User)
         [WHERE "table"."name" = ?, ["Elixir"]]
 
-        iex> normalize_wheres(Query[ wheres: ["table.name = ?", "Elixir"] ], User)
+        iex> normalize_wheres(%Query{ wheres: ["table.name = ?", "Elixir"] }, User)
         [WHERE table.name = ?, ["Elixir"]]
       """
       def normalize_wheres(query, model) do
@@ -118,7 +118,7 @@ defmodule Atlas.Query.Processor do
         #{offset_to_sql(query)}
         """
 
-        { prepared_sql, bound_args}
+        {prepared_sql, bound_args}
       end
 
       @doc """
