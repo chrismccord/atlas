@@ -2,10 +2,20 @@ defmodule Atlas.Mixfile do
   use Mix.Project
 
   def project do
-    [ app: :atlas,
-      version: "0.0.1",
+    [
+      app: :atlas,
+      version: "0.2.0",
       elixir: ">= 0.13.3",
-      deps: deps ]
+      deps: deps,
+      package: [
+        contributors: ["Chris McCord", "Sonny Scroggin"],
+        licenses: ["MIT"],
+        links: [github: "https://github.com/chrismccord/atlas"]
+      ],
+      description: """
+      Object Relational Mapper for Elixir
+      """
+    ]
   end
 
   # Configuration for the OTP application
