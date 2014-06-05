@@ -1,6 +1,8 @@
 language: erlang
 otp_release:
   - 17.0
+addons:
+  postgres: "9.3"
 before_install:
   - git clone https://github.com/elixir-lang/elixir
   - cd elixir && git checkout v0.13.3 && make && cd ..
@@ -8,5 +10,7 @@ before_script:
   - export PATH=`pwd`/elixir/bin:$PATH
   - mix local.hex --force
   - MIX_ENV=test mix do deps.get
+  - psql -c 'CREATE DATABASE atlas_test;' -U postgres
+  - cp lib/atlas/repos/repo.ex.example lib/atlas/repos/repo.ex
 script:
   - mix test
