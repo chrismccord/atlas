@@ -3,8 +3,8 @@ defmodule Repo do
 
   def config(:dev) do
     [
-      database: "",
-      username: "",
+      database: "atlas_dev",
+      username: "postgres",
       password: "",
       host: "",
       pool: 5,
@@ -14,8 +14,8 @@ defmodule Repo do
 
   def config(:test) do
     [
-      database: "",
-      username: "",
+      database: "atlas_test",
+      username: "postgres",
       password: "",
       host: "",
       pool: 5,
@@ -25,8 +25,8 @@ defmodule Repo do
 
   def config(:prod) do
     [
-      database: "",
-      username: "",
+      database: "atlas_prod",
+      username: "postgres",
       password: "",
       host: "",
       pool: 5,
