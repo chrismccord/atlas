@@ -2,6 +2,8 @@
 
 Atlas is an Object Relational Mapper for Elixir. (Work in progress. Expect breaking changes)
 
+[![Build Status](https://api.travis-ci.org/chrismccord/atlas.svg)](https://travis-ci.org/chrismccord/atlas)
+
 ## Current Features
 - Postgres Adapter
 - Validations
