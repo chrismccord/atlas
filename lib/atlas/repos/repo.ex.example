@@ -6,7 +6,7 @@ defmodule Repo do
       database: "atlas_dev",
       username: "postgres",
       password: "",
-      host: "",
+      host: "localhost",
       pool: 5,
       log_level: :debug
     ]
@@ -17,7 +17,7 @@ defmodule Repo do
       database: "atlas_test",
       username: "postgres",
       password: "",
-      host: "",
+      host: "localhost",
       pool: 5,
       log_level: :debug
     ]
@@ -28,7 +28,7 @@ defmodule Repo do
       database: "atlas_prod",
       username: "postgres",
       password: "",
-      host: "",
+      host: "localhost",
       pool: 5,
       log_level: :warn
     ]
