@@ -26,7 +26,7 @@ defmodule Atlas.Repo do
       The unique identifier of the repo's genserver adapter process
       """
       def server_name do
-        binary_to_atom  "repo_server_#{String.downcase(to_string(unquote(__MODULE__)))}"
+        String.to_atom  "repo_server_#{String.downcase(to_string(unquote(__MODULE__)))}"
       end
 
       @doc """

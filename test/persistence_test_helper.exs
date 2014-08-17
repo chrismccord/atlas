@@ -88,13 +88,10 @@ defmodule Atlas.PersistenceTestHelper do
 
       setup_all do
         create_table
+        on_exit fn -> drop_table end
         :ok
       end
 
-      teardown_all do
-        drop_table
-        :ok
-      end
     end
   end
 end

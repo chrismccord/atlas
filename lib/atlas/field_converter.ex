@@ -29,7 +29,7 @@ defmodule Atlas.FieldConverter do
   end
 
   def value_to_field_type(value, :boolean) when is_boolean(value), do: value
-  def value_to_field_type(value, :boolean), do: binary_to_atom(to_string(value)) == true
+  def value_to_field_type(value, :boolean), do: String.to_atom(to_string(value)) == true
 
   def value_to_field_type(value, :datetime) when is_binary(value), do: value
   def value_to_field_type(nil,   :datetime), do: nil

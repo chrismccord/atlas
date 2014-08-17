@@ -6,10 +6,10 @@ defmodule Atlas.Adapters.Postgres do
 
   def connect(config) do
     case PG.connect(
-      List.from_char_data!(config.host),
-      List.from_char_data!(config.username),
-      List.from_char_data!(config.password),
-      database: List.from_char_data!(config.database)) do
+      String.to_char_list(config.host),
+      String.to_char_list(config.username),
+      String.to_char_list(config.password),
+      database: String.to_char_list(config.database)) do
 
       {:ok, pid}       -> {:ok, pid}
       {:error, reason} -> {:error, reason}
@@ -107,12 +107,12 @@ defmodule Atlas.Adapters.Postgres do
   # Ex: [{:column,"id",:int4,4,-1,0}, {:column,"age",:int4,4,-1,0}]
   # => [:id, :age]
   defp normalize_cols(columns) do
-    Enum.map columns, fn col -> binary_to_atom(elem(col, 1)) end
+    Enum.map columns, fn col -> String.to_atom(elem(col, 1)) end
   end
 
   defp normalize_rows(rows_of_tuples) do
     rows_of_tuples
-    |> Enum.map(&tuple_to_list(&1))
+    |> Enum.map(&Tuple.to_list(&1))
     |> Enum.map(&normalize_values(&1))
   end
 end

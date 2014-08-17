@@ -27,7 +27,7 @@ defmodule Atlas.Finders do
     quote unquote: false do
       Enum.each @fields, fn field ->
         field_name = elem(field, 0)
-        def unquote(binary_to_atom "with_#{field_name}")(value) do
+        def unquote(String.to_atom "with_#{field_name}")(value) do
           where([{unquote(field_name), value}])
         end
       end
