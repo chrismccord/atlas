@@ -5,7 +5,7 @@ addons:
   postgres: "9.3"
 before_install:
   - git clone https://github.com/elixir-lang/elixir
-  - cd elixir && git checkout v0.13.3 && make && cd ..
+  - cd elixir && git checkout v0.15.1 && make && cd ..
 before_script:
   - export PATH=`pwd`/elixir/bin:$PATH
   - mix local.hex --force
