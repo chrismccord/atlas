@@ -70,7 +70,8 @@ defmodule Atlas.Accessors do
         %User{email: "user@example.com"}
 
       """
-      def new(attributes \\ []) when is_list(attributes) do
+      def new(attributes \\ [])
+      def new(attributes) when is_list(attributes) do
         assign(struct(__MODULE__, attributes), attributes)
       end
       def new(map) when is_map(map) do
